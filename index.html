@@ -1,4 +1,4 @@
-<!DOCTYPE ht ml>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -16,6 +16,7 @@
     
     body {
       font-family: 'Inter', system_ui, sans-serif;
+      -webkit-text-size-adjust: 100%; /* Prevents iOS from auto-zooming text */
     }
     
     .font-display {
@@ -62,6 +63,20 @@
       font-size: 1.1rem;
       letter-spacing: -0.02em;
       font-weight: 600;
+    }
+
+    /* Mobile improvements */
+    @media (max-width: 640px) {
+      .max-w-screen-2xl {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      
+      .odds-btn {
+        font-size: 0.75rem;
+        padding-top: 6px;
+        padding-bottom: 6px;
+      }
     }
 
     .nav-active {
@@ -141,6 +156,53 @@
     }
     .shake {
       animation: shake 0.4s ease;
+    }
+
+    /* Mobile-friendly improvements */
+    @media (max-width: 640px) {
+      .max-w-screen-2xl {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+      
+      table {
+        font-size: 13px;
+      }
+      
+      .section-header {
+        font-size: 1.05rem;
+      }
+
+      /* Sportsbook table - better mobile experience */
+      #sports-table-body tr {
+        display: block;
+        border-bottom: 1px solid #27272a;
+        padding: 12px 8px;
+      }
+
+      #sports-table-body td {
+        display: block;
+        padding: 4px 0;
+        border: none;
+      }
+
+      #sports-table-body td:first-child {
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      /* Crypto table - card style on mobile */
+      #crypto-table-body tr {
+        display: block;
+        padding: 12px 4px;
+        border-bottom: 1px solid #27272a;
+      }
+
+      #crypto-table-body td {
+        display: block;
+        padding: 2px 0;
+        border: none;
+      }
     }
   </style>
 </head>
@@ -330,7 +392,8 @@
 
     <!-- Sports Markets Table -->
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-      <table class="w-full">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[640px]">
         <thead>
           <tr class="border-b border-zinc-800 text-xs text-zinc-500">
             <th class="text-left font-normal px-6 py-4 w-2/5">EVENT</th>
@@ -344,6 +407,7 @@
           <!-- Populated by JavaScript -->
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 
