@@ -1,0 +1,3351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>type.bet • Prediction Markets & Sports Betting</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+    
+    :root {
+      --accent: 16 185 129;
+    }
+    
+    body {
+      font-family: 'Inter', system_ui, sans-serif;
+    }
+    
+    .font-display {
+      font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif;
+      font-weight: 600;
+    }
+
+    .betting-card {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .betting-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    .odds-btn {
+      transition: all 0.1s ease;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    
+    .odds-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.1);
+    }
+    
+    .odds-btn.selected {
+      background-color: rgb(16 185 129);
+      color: white;
+      border-color: rgb(16 185 129);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    .market-row {
+      transition: background-color 0.1s ease;
+    }
+    
+    .market-row:hover {
+      background-color: #18181b;
+    }
+
+    .section-header {
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      font-weight: 600;
+    }
+
+    .nav-active {
+      color: white;
+      position: relative;
+    }
+    
+    .nav-active:after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(to right, rgb(16 185 129), rgb(52 211 153));
+    }
+
+    .stat-number {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bet-slip {
+      box-shadow: -10px 0 15px -3px rgb(0 0 0 / 0.3);
+    }
+
+    .logo-text {
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .odds-value {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+    }
+
+    .betting-table {
+      border-collapse: separate;
+      border-spacing: 0 4px;
+    }
+
+    /* Live odds animation styles */
+    .odds-flash-up {
+      animation: oddsFlashUp 650ms ease-out;
+      color: #4ade80 !important;
+    }
+    .odds-flash-down {
+      animation: oddsFlashDown 650ms ease-out;
+      color: #f87171 !important;
+    }
+    @keyframes oddsFlashUp {
+      0% { background-color: rgba(74, 222, 128, 0.25); transform: scale(1.03); }
+      100% { background-color: transparent; transform: scale(1); }
+    }
+    @keyframes oddsFlashDown {
+      0% { background-color: rgba(248, 113, 113, 0.25); transform: scale(1.03); }
+      100% { background-color: transparent; transform: scale(1); }
+    }
+
+    .live-dot {
+      animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .odds-moved {
+      font-size: 9px;
+      color: #f59e0b;
+      margin-left: 4px;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .shake {
+      animation: shake 0.4s ease;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+  <!-- STRONG DEMO / PROTOTYPE BANNER -->
+  <div class="bg-[#1a1408] border-b border-amber-900/60 py-3.5">
+    <div class="max-w-screen-2xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-center gap-x-3 gap-y-1 text-center md:text-left">
+        <div class="flex items-center justify-center md:justify-start gap-x-2">
+          <i class="fa-solid fa-exclamation-triangle text-amber-400"></i>
+          <span class="font-bold tracking-wide text-amber-400 text-sm">PROTOTYPE ONLY — NOT A REAL GAMBLING SITE</span>
+        </div>
+        <div class="text-amber-300/90 text-sm">
+          This is a non-functional design concept and interactive demo. <span class="font-medium">No real money can be deposited or wagered.</span> type.bet is not operating as a licensed gambling platform.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-lg sticky top-0 z-50">
+    <div class="max-w-screen-2xl mx-auto">
+      <div class="px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-x-10">
+          <!-- Logo -->
+          <div id="logo-home" 
+               class="flex items-center gap-x-3 cursor-pointer select-none"
+               title="Go to home">
+            <div class="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center shadow-inner">
+              <span class="text-zinc-950 font-black text-3xl tracking-tighter font-display">T</span>
+            </div>
+            <div>
+              <span class="logo-text text-2xl font-semibold tracking-tighter">type.bet</span>
+            </div>
+          </div>
+
+          <!-- Nav Links -->
+          <div class="hidden md:flex items-center gap-x-8 text-sm">
+            <a href="#sportsbook" onclick="document.getElementById('sportsbook').scrollIntoView({ behavior: 'smooth' })" 
+               class="text-zinc-400 hover:text-white transition-colors font-medium">Sportsbook</a>
+            <a href="#predictions" onclick="document.getElementById('predictions').scrollIntoView({ behavior: 'smooth' })" 
+               class="text-zinc-400 hover:text-white transition-colors font-medium">Markets</a>
+            <a href="#crypto" onclick="document.getElementById('crypto').scrollIntoView({ behavior: 'smooth' })" 
+               class="text-zinc-400 hover:text-white transition-colors font-medium">Crypto</a>
+            <a href="#sport-news" onclick="document.getElementById('sport-news').scrollIntoView({ behavior: 'smooth' })" 
+               class="text-zinc-400 hover:text-white transition-colors font-medium">News</a>
+            <a href="#activity" onclick="document.getElementById('activity').scrollIntoView({ behavior: 'smooth' })" 
+               class="text-zinc-400 hover:text-white transition-colors font-medium">Activity</a>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-x-3">
+          <!-- Balance -->
+          <div onclick="showDepositModal()" 
+               class="flex items-center gap-x-2.5 px-4 h-10 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-2xl cursor-pointer transition-all active:scale-[0.985]">
+            <div class="flex items-center gap-x-2">
+              <i class="fa-solid fa-wallet text-emerald-400"></i>
+              <div>
+                <span id="balance" class="font-semibold tabular-nums text-lg tracking-tight">5,000.00</span>
+                <span class="text-xs text-zinc-500 font-medium ml-0.5">USD</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- User -->
+          <div id="user-profile"
+               class="flex items-center gap-x-2.5 pl-3 pr-4 h-10 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:bg-zinc-800 hover:border-zinc-700 transition-colors group"
+               title="Edit profile">
+            <div id="user-avatar"
+                 class="w-7 h-7 bg-zinc-700 rounded-full flex items-center justify-center ring-1 ring-zinc-600 text-[10px] font-semibold text-zinc-200 group-hover:ring-zinc-500">
+              <!-- Populated dynamically via JS -->
+            </div>
+            <div class="hidden sm:block">
+              <span id="user-display-name" class="text-sm font-semibold">Alex Rivera</span>
+            </div>
+            <i class="fa-solid fa-pencil text-[10px] text-zinc-500 group-hover:text-zinc-400 ml-1 hidden sm:block"></i>
+          </div>
+
+          <!-- Mobile menu -->
+          <button class="md:hidden w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white" onclick="toggleMobileMenu()">
+            <i class="fa-solid fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="max-w-screen-2xl mx-auto px-6 pt-12 pb-10">
+    <div class="max-w-3xl">
+      <div class="inline-flex items-center gap-x-2 rounded-full bg-zinc-900 border border-zinc-800 px-3.5 py-1 mb-6">
+        <div class="flex items-center gap-x-1.5">
+          <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+          <span class="text-xs font-semibold tracking-[0.5px] text-emerald-400">NOW LIVE • 142,819 BETS PLACED TODAY</span>
+        </div>
+      </div>
+
+      <h1 class="text-6xl md:text-7xl font-semibold tracking-tighter leading-none mb-4">
+        Bet on what<br>happens next.
+      </h1>
+      <p class="text-xl text-zinc-400 max-w-lg">
+        Clean prediction markets and sharp sports odds. 
+        Built for people who like winning.
+      </p>
+
+      <div class="flex items-center gap-x-4 mt-8">
+        <button onclick="document.getElementById('sportsbook').scrollIntoView({ behavior: 'smooth' })" 
+                class="px-8 h-12 bg-white text-zinc-950 font-semibold rounded-2xl flex items-center gap-x-2 hover:bg-zinc-100 active:bg-white transition-all shadow-lg shadow-white/10">
+          <span>Browse Markets</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        
+        <button onclick="showHowItWorks()" 
+                class="px-6 h-12 border border-zinc-700 hover:bg-zinc-900 font-semibold rounded-2xl flex items-center gap-x-2 transition-all">
+          <span>How it works</span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-x-6 mt-8 text-sm">
+        <div class="flex items-center -space-x-1">
+          <div class="w-6 h-6 bg-zinc-700 rounded-full border border-zinc-800 ring-1 ring-zinc-950"></div>
+          <div class="w-6 h-6 bg-zinc-600 rounded-full border border-zinc-800 ring-1 ring-zinc-950"></div>
+          <div class="w-6 h-6 bg-zinc-500 rounded-full border border-zinc-800 ring-1 ring-zinc-950"></div>
+        </div>
+        <span class="text-zinc-500 text-sm">Trusted by 87k+ sharp bettors</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="max-w-screen-2xl mx-auto px-6 pb-10">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
+        <div class="text-emerald-400 text-xs tracking-widest font-semibold">24H VOLUME</div>
+        <div class="text-3xl font-semibold tabular-nums mt-1">$18.4M</div>
+        <div class="text-emerald-400 text-sm flex items-center gap-1 mt-0.5">
+          <i class="fa-solid fa-arrow-trend-up"></i>
+          <span>+31%</span>
+        </div>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
+        <div class="text-emerald-400 text-xs tracking-widest font-semibold">ACTIVE MARKETS</div>
+        <div class="text-3xl font-semibold tabular-nums mt-1">1,284</div>
+        <div class="text-zinc-400 text-sm mt-0.5">312 live right now</div>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
+        <div class="text-emerald-400 text-xs tracking-widest font-semibold">PAYOUTS TODAY</div>
+        <div class="text-3xl font-semibold tabular-nums mt-1">$9.2M</div>
+        <div class="text-zinc-400 text-sm mt-0.5">98.7% paid within 4min</div>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
+        <div class="text-emerald-400 text-xs tracking-widest font-semibold">WIN RATE (TOP 10%)</div>
+        <div class="text-3xl font-semibold tabular-nums mt-1">61.4%</div>
+        <div class="text-zinc-400 text-sm mt-0.5">Beating the books</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPORTSBOOK -->
+  <div id="sportsbook" class="max-w-screen-2xl mx-auto px-6 pt-4 pb-12">
+    <div class="flex items-end justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-x-3">
+          <h2 class="section-header">Sportsbook</h2>
+          <span class="px-2.5 py-px rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">LIVE</span>
+          <span id="games-source-badge"
+                class="px-2.5 py-px rounded-full text-[10px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700 cursor-pointer hover:border-zinc-500"
+                onclick="refreshRealGames()">
+            <span id="games-source-text">Loading real games…</span>
+          </span>
+        </div>
+        <p class="text-sm text-zinc-500">Real games from ESPN. <span class="text-amber-400/80 font-medium">All odds and betting are simulated for demo purposes only.</span></p>
+      </div>
+      <div class="hidden md:flex items-center gap-x-1.5 text-sm overflow-x-auto pb-1 -mb-1" style="scrollbar-width: thin;">
+        <div onclick="filterSport('all')" class="sport-filter active px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium bg-zinc-900 border border-zinc-700" data-sport="all">All</div>
+        <div onclick="filterSport('nfl')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="nfl">NFL</div>
+        <div onclick="filterSport('nba')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="nba">NBA</div>
+        <div onclick="filterSport('nhl')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="nhl">NHL</div>
+        <div onclick="filterSport('ufc')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="ufc">UFC</div>
+        <div onclick="filterSport('college-football')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="college-football">CFB</div>
+        <div onclick="filterSport('mens-college-basketball')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="mens-college-basketball">CBB</div>
+        <div onclick="filterSport('college-baseball')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="college-baseball">C. Baseball</div>
+        <div onclick="filterSport('mlb')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="mlb">MLB</div>
+        <div onclick="filterSport('soccer')" class="sport-filter px-3 py-1 rounded-2xl cursor-pointer text-xs font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-sport="soccer">Soccer</div>
+      </div>
+    </div>
+
+    <!-- Sports Markets Table -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-zinc-800 text-xs text-zinc-500">
+            <th class="text-left font-normal px-6 py-4 w-2/5">EVENT</th>
+            <th class="text-center font-normal px-3 py-4">MONEYLINE</th>
+            <th class="text-center font-normal px-3 py-4 hidden sm:table-cell">SPREAD</th>
+            <th class="text-center font-normal px-3 py-4 hidden lg:table-cell">TOTAL</th>
+            <th class="w-10"></th>
+          </tr>
+        </thead>
+        <tbody id="sports-table-body">
+          <!-- Populated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CRYPTO COIN MARKET -->
+  <div id="crypto" class="max-w-screen-2xl mx-auto px-6 pb-14">
+    <div class="flex items-end justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-x-3">
+          <h2 class="section-header">Crypto Market</h2>
+          <span id="crypto-live-badge"
+                class="px-2.5 py-px rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-x-1">
+            <span class="live-dot inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+            <span>LIVE</span>
+          </span>
+        </div>
+        <p class="text-sm text-zinc-500">Live prices powered by CoinGecko • Free API</p>
+      </div>
+
+      <div class="flex items-center gap-x-3">
+        <div class="relative w-64">
+          <input id="crypto-search" 
+                 type="text" 
+                 placeholder="Search coins (BTC, ETH...)" 
+                 class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-500 rounded-2xl pl-10 pr-4 py-2 text-sm outline-none">
+          <i class="fa-solid fa-search absolute left-4 top-3 text-zinc-500"></i>
+        </div>
+        <button onclick="refreshCryptoData()" 
+                class="flex items-center gap-x-2 px-4 py-2 text-sm rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300">
+          <i class="fa-solid fa-sync-alt"></i>
+          <span class="hidden sm:inline">Refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Crypto Table -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[700px]">
+          <thead>
+            <tr class="border-b border-zinc-800 text-xs text-zinc-500">
+              <th class="text-left font-normal px-6 py-4">Coin</th>
+              <th class="text-right font-normal px-4 py-4">Price</th>
+              <th class="text-right font-normal px-4 py-4">24h</th>
+              <th class="text-right font-normal px-4 py-4 hidden md:table-cell">Market Cap</th>
+              <th class="text-right font-normal px-4 py-4 hidden lg:table-cell">Volume (24h)</th>
+              <th class="w-16"></th>
+            </tr>
+          </thead>
+          <tbody id="crypto-table-body">
+            <!-- Populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="text-xs text-zinc-500 mt-3 flex items-center gap-x-2">
+      <i class="fa-solid fa-info-circle"></i>
+      <span>Data updates every 60 seconds. Click any row for a 7-day price chart.</span>
+    </div>
+  </div>
+
+  <!-- SPORT NEWS -->
+  <div id="sport-news" class="max-w-screen-2xl mx-auto px-6 pb-14">
+    <div class="flex items-end justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-x-3">
+          <h2 class="section-header">Sport News</h2>
+          <span id="news-live-badge"
+                class="px-2.5 py-px rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-x-1">
+            <span class="live-dot inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+            <span>LIVE</span>
+          </span>
+        </div>
+        <p class="text-sm text-zinc-500">Latest headlines from the sports world</p>
+      </div>
+
+      <div class="flex items-center gap-x-3">
+        <div class="relative w-72">
+          <input id="news-search" 
+                 type="text" 
+                 placeholder="Search news..." 
+                 class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-500 rounded-2xl pl-10 pr-4 py-2 text-sm outline-none">
+          <i class="fa-solid fa-search absolute left-4 top-3 text-zinc-500"></i>
+        </div>
+        <button onclick="refreshSportNews()" 
+                class="flex items-center gap-x-2 px-4 py-2 text-sm rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300">
+          <i class="fa-solid fa-sync-alt"></i>
+          <span class="hidden sm:inline">Refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- News Category Filters -->
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <div onclick="filterNewsByCategory('all')" class="news-filter active px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium bg-zinc-900 border border-zinc-700" data-category="all">All</div>
+      <div onclick="filterNewsByCategory('nfl')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="nfl">NFL</div>
+      <div onclick="filterNewsByCategory('nba')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="nba">NBA</div>
+      <div onclick="filterNewsByCategory('soccer')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="soccer">Soccer</div>
+      <div onclick="filterNewsByCategory('ufc')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="ufc">UFC</div>
+      <div onclick="filterNewsByCategory('mlb')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="mlb">MLB</div>
+      <div onclick="filterNewsByCategory('nhl')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="nhl">NHL</div>
+      <div onclick="filterNewsByCategory('cfb')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="cfb">CFB</div>
+      <div onclick="filterNewsByCategory('cbb')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="cbb">CBB</div>
+      <div onclick="filterNewsByCategory('tennis')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="tennis">Tennis</div>
+      <div onclick="filterNewsByCategory('golf')" class="news-filter px-4 py-1.5 rounded-2xl cursor-pointer text-sm font-medium hover:bg-zinc-900 border border-transparent hover:border-zinc-700" data-category="golf">Golf</div>
+    </div>
+
+    <!-- News Feed -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+      <div id="news-list" class="divide-y divide-zinc-800 max-h-[520px] overflow-auto">
+        <!-- Populated by JavaScript -->
+      </div>
+    </div>
+
+    <div class="text-xs text-zinc-500 mt-3 flex items-center gap-x-2">
+      <i class="fa-solid fa-info-circle"></i>
+      <span id="news-source">Data from NewsAPI (free tier) • Updates every few minutes</span>
+    </div>
+  </div>
+
+  <!-- PREDICTION MARKETS -->
+  <div id="predictions" class="max-w-screen-2xl mx-auto px-6 pb-14">
+    <div class="flex items-end justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-x-3">
+          <h2 class="section-header">Prediction Markets</h2>
+          <span id="polymarket-badge" 
+                class="px-2.5 py-px rounded-full text-[10px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
+            Loading...
+          </span>
+          <button onclick="refreshPolymarketMarkets()" 
+                  class="flex items-center gap-x-1 px-2.5 py-px text-[10px] rounded-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors">
+            <i class="fa-solid fa-sync-alt text-xs"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+        <p class="text-sm text-zinc-500">Trade on real-world outcomes. Binary and multi-outcome.</p>
+      </div>
+      <button onclick="showAllMarketsModal()" 
+              class="text-sm flex items-center gap-x-2 text-emerald-400 hover:text-emerald-300 font-medium">
+        <span>Browse markets</span>
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="prediction-markets-grid">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+
+  <!-- ACTIVITY / MY BETS -->
+  <div id="activity" class="max-w-screen-2xl mx-auto px-6 pb-16">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="section-header">Your Activity</h2>
+      <button onclick="resolveDemoBets()" 
+              class="flex items-center gap-x-2 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-emerald-400 px-4 h-9 rounded-2xl transition-all">
+        <i class="fa-solid fa-sync-alt mr-1.5"></i>
+        <span>SETTLE DEMO BETS</span>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <!-- Open Bets -->
+      <div class="lg:col-span-3 bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
+        <div class="flex items-center justify-between mb-4 px-1">
+          <div class="font-semibold text-sm flex items-center gap-x-2">
+            <span>OPEN BETS</span> 
+            <span id="open-bets-count" class="bg-emerald-500/10 text-emerald-400 text-[10px] font-mono px-2 py-px rounded">0</span>
+          </div>
+        </div>
+        
+        <div id="open-bets-list" class="space-y-2 min-h-[120px]">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Recent Settled -->
+      <div class="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
+        <div class="font-semibold text-sm mb-4 px-1">RECENTLY SETTLED</div>
+        <div id="settled-bets-list" class="space-y-2 min-h-[120px] text-sm">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS / TRUST -->
+  <div class="bg-zinc-900 border-y border-zinc-800 py-12">
+    <div class="max-w-screen-2xl mx-auto px-6">
+      <div class="grid md:grid-cols-3 gap-x-8 gap-y-10">
+        <div>
+          <div class="w-9 h-9 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-400">
+            <i class="fa-solid fa-shield-halved text-lg"></i>
+          </div>
+          <div class="font-semibold mb-1.5">Sharp odds, transparent edge</div>
+          <div class="text-sm text-zinc-400">We publish our margin on every market. No hidden fees. No surprise adjustments.</div>
+        </div>
+        <div>
+          <div class="w-9 h-9 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-400">
+            <i class="fa-solid fa-bolt text-lg"></i>
+          </div>
+          <div class="font-semibold mb-1.5">Instant settlements</div>
+          <div class="text-sm text-zinc-400">Markets resolve automatically via oracle or within minutes of official results. Funds available immediately.</div>
+        </div>
+        <div>
+          <div class="w-9 h-9 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-400">
+            <i class="fa-solid fa-user-lock text-lg"></i>
+          </div>
+          <div class="font-semibold mb-1.5">Built for serious bettors</div>
+          <div class="text-sm text-zinc-400">High limits. No account limits for winning players. Withdrawals processed same day.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="max-w-screen-2xl mx-auto px-6 pt-10 pb-8 text-xs text-zinc-500 border-t border-zinc-800">
+    <div class="max-w-3xl">
+      <div class="font-medium text-amber-400/90 mb-2 tracking-wide">IMPORTANT — THIS IS A DEMONSTRATION PROTOTYPE ONLY</div>
+      
+      <p class="leading-relaxed">
+        type.bet is currently a non-functional concept and design prototype. <strong>No real-money gambling, betting, deposits, or withdrawals are available or offered on this website.</strong> 
+        This site exists solely for demonstration, design review, and evaluation purposes. type.bet is <strong>not</strong> a licensed gambling operator in any jurisdiction.
+      </p>
+
+      <p class="mt-2 leading-relaxed">
+        Any balances, bets, or outcomes shown are simulated for illustrative purposes only. This website does not constitute an offer to gamble. 
+        Access to real gambling services (if and when launched) will be restricted to users in jurisdictions where such activity is legal and properly licensed.
+      </p>
+
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 text-[11px]">
+        <span>© type.bet 2026</span>
+        <span class="text-zinc-700">•</span>
+        <a href="#" class="hover:text-zinc-400">Responsible Gambling</a>
+        <a href="#" class="hover:text-zinc-400">Terms of Use</a>
+        <a href="#" class="hover:text-zinc-400">Privacy Policy</a>
+        <a href="#disclaimer" class="hover:text-zinc-400">Full Disclaimer</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- BET SLIP (Desktop sidebar + mobile floating) -->
+  <div id="bet-slip-desktop" 
+       class="hidden xl:block fixed right-6 top-24 w-80 bg-zinc-900 border border-zinc-700 rounded-3xl shadow-2xl shadow-black/50 overflow-hidden z-40 transition-all duration-200">
+    
+    <!-- Expanded Header -->
+    <div id="bet-slip-header-expanded" class="px-5 pt-4 pb-3 border-b border-zinc-700 flex items-center justify-between">
+      <div class="font-semibold flex items-center gap-x-2 cursor-pointer" onclick="toggleBetSlipMinimize()">
+        <span>Bet Slip</span>
+        <span id="slip-count-desktop" class="bg-emerald-500 text-[10px] text-black font-mono px-1.5 rounded-full h-4 min-w-[16px] flex items-center justify-center">0</span>
+      </div>
+      <div class="flex items-center gap-x-2">
+        <button onclick="clearBetSlip(); event.stopImmediatePropagation();" class="text-xs text-zinc-400 hover:text-red-400">Clear</button>
+        <button onclick="toggleBetSlipMinimize(); event.stopImmediatePropagation();" 
+                class="text-zinc-400 hover:text-white px-1" title="Minimize bet slip">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Collapsed / Minimized State -->
+    <div id="bet-slip-collapsed" onclick="toggleBetSlipMinimize()" 
+         class="hidden flex-col items-center justify-center py-4 cursor-pointer hover:bg-zinc-800 transition-colors">
+      <div class="flex flex-col items-center gap-y-1">
+        <i class="fa-solid fa-ticket text-emerald-400 text-xl"></i>
+        <span id="slip-count-collapsed" 
+              class="bg-emerald-500 text-black text-[10px] font-mono px-1.5 rounded-full min-w-[18px] h-[18px] flex items-center justify-center">0</span>
+      </div>
+      <div class="text-[10px] text-zinc-500 mt-1 writing-mode-vertical rotate-180" style="writing-mode: vertical-rl; text-orientation: mixed;">
+        SLIP
+      </div>
+    </div>
+
+    <!-- Expanded Content -->
+    <div id="bet-slip-expanded-content">
+      <div id="bet-slip-content" class="p-4 space-y-3 max-h-[380px] overflow-auto">
+        <!-- Dynamic -->
+      </div>
+
+      <div class="p-4 border-t border-zinc-700 bg-zinc-950">
+        <div class="flex justify-between text-sm mb-3 px-1">
+          <span class="text-zinc-400">Total Stake</span>
+          <span id="total-stake" class="font-semibold tabular-nums">$0.00</span>
+        </div>
+        <div class="flex justify-between text-sm mb-4 px-1">
+          <span class="text-zinc-400">Potential Payout</span>
+          <span id="potential-payout" class="font-semibold text-emerald-400 tabular-nums">$0.00</span>
+        </div>
+        
+        <button onclick="placeBet()" 
+                class="w-full h-11 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-500 transition-colors text-black font-bold text-sm rounded-2xl flex items-center justify-center gap-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                id="place-bet-btn">
+          <span>PLACE BET</span>
+        </button>
+        <div class="text-center text-[10px] text-zinc-500 mt-2">Odds subject to change until placed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Bet Slip Trigger -->
+  <div class="xl:hidden fixed bottom-5 right-5 z-50">
+    <button onclick="showMobileBetSlip()" 
+            class="flex items-center gap-x-2.5 shadow-xl shadow-black/40 bg-emerald-500 active:bg-emerald-600 text-black px-5 h-12 rounded-3xl font-bold text-sm">
+      <div class="flex items-center gap-x-2">
+        <i class="fa-solid fa-ticket"></i>
+        <span>BET SLIP</span>
+        <span id="slip-count-mobile" class="bg-black/20 text-black text-xs font-mono px-1.5 rounded-full min-w-[18px] h-[18px] flex items-center justify-center">0</span>
+      </div>
+    </button>
+  </div>
+
+  <!-- Modals -->
+  
+  <!-- Deposit Modal -->
+  <div id="deposit-modal" onclick="if (event.target.id === 'deposit-modal') hideDepositModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur z-[70] flex items-end xl:items-center justify-center">
+    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full xl:w-[380px] xl:rounded-3xl xl:m-4 rounded-t-3xl border border-zinc-700 p-6">
+      <div class="flex justify-between items-center mb-6">
+        <div class="font-semibold">Add Demo Funds</div>
+        <button onclick="hideDepositModal()" class="text-xl text-zinc-400 hover:text-white">×</button>
+      </div>
+      
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <div onclick="quickDeposit(500)" class="border border-zinc-700 hover:border-emerald-500 cursor-pointer rounded-2xl py-3 text-center">
+          <div class="text-xs text-zinc-400">QUICK</div>
+          <div class="font-semibold text-xl tabular-nums">$500</div>
+        </div>
+        <div onclick="quickDeposit(2000)" class="border border-zinc-700 hover:border-emerald-500 cursor-pointer rounded-2xl py-3 text-center">
+          <div class="text-xs text-zinc-400">QUICK</div>
+          <div class="font-semibold text-xl tabular-nums">$2,000</div>
+        </div>
+        <div onclick="quickDeposit(10000)" class="border border-zinc-700 hover:border-emerald-500 cursor-pointer rounded-2xl py-3 text-center">
+          <div class="text-xs text-zinc-400">QUICK</div>
+          <div class="font-semibold text-xl tabular-nums">$10,000</div>
+        </div>
+      </div>
+
+      <div class="text-[11px] text-center text-amber-400/80 leading-snug">
+        This is fake money for demo purposes only.<br>
+        No real deposits or gambling are possible on this prototype.
+      </div>
+
+      <!-- Wallet Connection Section -->
+      <div class="mt-5 pt-4 border-t border-zinc-700">
+        <div class="text-xs text-zinc-400 mb-2 flex items-center gap-x-1">
+          <i class="fa-solid fa-wallet"></i>
+          <span>Connect Phantom (Solana)</span>
+        </div>
+        <div id="wallet-section">
+          <!-- Dynamically populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Bet Slip Modal -->
+  <div id="mobile-betslip-modal" onclick="if (event.target.id === 'mobile-betslip-modal') hideMobileBetSlip()" class="hidden fixed inset-0 bg-black/80 z-[80] flex items-end">
+    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full rounded-t-3xl border-t border-zinc-700 max-h-[85vh] overflow-auto">
+      <div class="p-4 flex items-center justify-between border-b border-zinc-800 sticky top-0 bg-zinc-900 z-10">
+        <div class="font-semibold">Bet Slip <span id="slip-count-modal" class="text-emerald-400 text-sm"></span></div>
+        <div class="flex items-center gap-3">
+          <button onclick="clearBetSlip(); hideMobileBetSlip()" class="text-xs px-3 py-1 text-red-400">CLEAR</button>
+          <button onclick="hideMobileBetSlip()" class="text-2xl leading-none px-2 text-zinc-400">×</button>
+        </div>
+      </div>
+
+      <div id="mobile-betslip-content" class="p-4 space-y-3"></div>
+
+      <div class="p-4 border-t border-zinc-700 bg-zinc-950 sticky bottom-0">
+        <div class="flex justify-between text-sm mb-3">
+          <span class="text-zinc-400">Total Stake</span>
+          <span id="mobile-total-stake" class="font-semibold tabular-nums">$0.00</span>
+        </div>
+        <div class="flex justify-between text-sm mb-4">
+          <span class="text-zinc-400">Potential Payout</span>
+          <span id="mobile-potential-payout" class="font-semibold text-emerald-400 tabular-nums">$0.00</span>
+        </div>
+        
+        <button onclick="placeBet(); hideMobileBetSlip()" 
+                class="w-full h-12 bg-emerald-500 active:bg-emerald-600 text-black font-bold text-sm rounded-2xl flex items-center justify-center">
+          PLACE BET
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[90] space-y-2"></div>
+
+  <script>
+    // Tailwind script
+    function initializeTailwind() {
+      document.documentElement.style.setProperty('--accent', '16 185 129');
+    }
+
+    // State
+    let balance = 5000.00;
+    let betSlip = [];
+    let openBets = [];
+    let settledBets = [];
+    let currentSportFilter = 'all';
+
+    let isBetSlipMinimized = localStorage.getItem('betSlipMinimized') === 'true';
+
+    // Sports data - populated dynamically from real ESPN data when possible
+    let sportsMarkets = [];
+    let usingRealGames = false;
+
+    // ============================================
+    // REAL GAMES FROM ESPN (no API key required)
+    // ============================================
+
+    function loadFallbackGames() {
+      const now = Date.now();
+
+      sportsMarkets = [
+        // NFL
+        { id: 'fb-nfl1', sport: 'nfl', time: '1:00pm ET', startTime: now + 1000*60*60*3, event: 'Kansas City Chiefs vs Baltimore Ravens', odds: { home: -145, away: +125 }, isLive: false, isFinal: false },
+        { id: 'fb-nfl2', sport: 'nfl', time: '4:25pm ET', startTime: now + 1000*60*60*6, event: 'San Francisco 49ers vs Detroit Lions', odds: { home: +110, away: -130 }, isLive: false, isFinal: false },
+        // NBA
+        { id: 'fb1', sport: 'nba', time: '7:00pm ET', startTime: now + 1000*60*60*2, event: 'Boston Celtics vs Milwaukee Bucks', odds: { home: -165, away: +140 }, isLive: false, isFinal: false },
+        { id: 'fb2', sport: 'nba', time: '9:30pm ET', startTime: now + 1000*60*60*4, event: 'Denver Nuggets vs Phoenix Suns', odds: { home: -110, away: -110 }, isLive: false, isFinal: false },
+        // NHL (US Hockey)
+        { id: 'fb-nhl1', sport: 'nhl', time: '7:00pm ET', startTime: now + 1000*60*60*1.5, event: 'Florida Panthers vs Edmonton Oilers', odds: { home: -130, away: +110 }, isLive: false, isFinal: false },
+        { id: 'fb-nhl2', sport: 'nhl', time: '10:00pm ET', startTime: now + 1000*60*60*5, event: 'New York Rangers vs Colorado Avalanche', odds: { home: -115, away: -105 }, isLive: false, isFinal: false },
+        // UFC
+        { id: 'fb-ufc1', sport: 'ufc', time: '10:00pm ET', startTime: now + 1000*60*60*7, event: 'Islam Makhachev vs Dustin Poirier', odds: { home: -280, away: +230 }, isLive: false, isFinal: false },
+        { id: 'fb-ufc2', sport: 'ufc', time: '10:00pm ET', startTime: now + 1000*60*60*7.5, event: 'Sean O\'Malley vs Merab Dvalishvili', odds: { home: -135, away: +115 }, isLive: false, isFinal: false },
+        // College Football
+        { id: 'fb-cfb1', sport: 'college-football', time: '3:30pm ET', startTime: now + 1000*60*60*2.5, event: 'Alabama vs Georgia', odds: { home: -160, away: +135 }, isLive: false, isFinal: false },
+        // College Basketball
+        { id: 'fb-cbb1', sport: 'mens-college-basketball', time: '7:00pm ET', startTime: now + 1000*60*60*3, event: 'Duke vs North Carolina', odds: { home: -145, away: +120 }, isLive: false, isFinal: false },
+        // College Baseball
+        { id: 'fb-cbase1', sport: 'college-baseball', time: '6:00pm ET', startTime: now + 1000*60*60*1, event: 'Texas vs Oklahoma State', odds: { home: -120, away: +100 }, isLive: false, isFinal: false },
+        // MLB
+        { id: 'fb5', sport: 'mlb', time: '7:10pm ET', startTime: now + 1000*60*60*2, event: 'New York Yankees vs Boston Red Sox', odds: { home: -130, away: +110 }, isLive: false, isFinal: false },
+        { id: 'fb6', sport: 'mlb', time: '10:10pm ET', startTime: now + 1000*60*60*5, event: 'Los Angeles Dodgers vs San Francisco Giants', odds: { home: -155, away: +130 }, isLive: false, isFinal: false },
+        // Soccer
+        { id: 'fb3', sport: 'soccer', time: '2:45pm ET', startTime: now + 1000*60*60*1, event: 'Manchester City vs Arsenal (EPL)', odds: { home: -180, away: +420, draw: +310 }, isLive: false, isFinal: false },
+        { id: 'fb4', sport: 'soccer', time: '11:30am ET', startTime: now + 1000*60*60*8, event: 'Real Madrid vs Barcelona', odds: { home: +105, away: +260, draw: +240 }, isLive: false, isFinal: false }
+      ];
+      usingRealGames = false;
+    }
+
+    function formatGameTime(dateStr) {
+      try {
+        const d = new Date(dateStr);
+        // Force display in Eastern Time (EST/EDT)
+        return d.toLocaleTimeString([], { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          timeZone: 'America/New_York'
+        }).toLowerCase().replace(' ', '') + ' ET';
+      } catch {
+        return 'TBD';
+      }
+    }
+
+    function parseESPNScoreboard(data, sport) {
+      if (!data || !data.events) return [];
+
+      return data.events.slice(0, 6).map((event, idx) => {
+        const comp = event.competitions?.[0];
+        if (!comp) return null;
+
+        const competitors = comp.competitors || [];
+        const homeTeam = competitors.find(c => c.homeAway === 'home') || competitors[0];
+        const awayTeam = competitors.find(c => c.homeAway === 'away') || competitors[1];
+
+        if (!homeTeam || !awayTeam) return null;
+
+        // Support both team sports and fighters (UFC/MMA)
+        const getName = (comp) => 
+          comp.team?.shortDisplayName || 
+          comp.team?.displayName || 
+          comp.athlete?.shortDisplayName || 
+          comp.athlete?.displayName ||
+          comp.name ||
+          'TBD';
+
+        const homeName = getName(homeTeam);
+        const awayName = getName(awayTeam);
+
+        const statusType = event.status?.type?.name || '';
+        const isLive = statusType.includes('IN_PROGRESS') || statusType.includes('HALFTIME');
+        const isFinal = statusType.includes('FINAL');
+
+        const startTime = new Date(event.date).getTime();
+
+        let timeLabel = '';
+        if (isLive) timeLabel = 'LIVE';
+        else if (isFinal) timeLabel = 'FINAL';
+        else timeLabel = formatGameTime(event.date);
+
+        const eventName = `${awayName} vs ${homeName}${sport === 'soccer' ? '' : ''}`;
+
+        // Generate plausible starting odds for the demo
+        const base = Math.floor(Math.random() * 180) + 80;
+        const homeOdds = Math.random() > 0.5 ? -base : base + 30;
+        const awayOdds = Math.random() > 0.5 ? -(base + 40) : base - 20;
+
+        const market = {
+          id: `real-${sport}-${event.id || idx}`,
+          sport: sport,
+          time: timeLabel,
+          startTime: startTime,
+          event: eventName,
+          isLive: isLive,
+          isFinal: isFinal,
+          realEvent: true,
+          odds: {
+            home: Math.round(homeOdds / 5) * 5,
+            away: Math.round(awayOdds / 5) * 5
+          }
+        };
+
+        if (sport === 'soccer') {
+          market.odds.draw = Math.round((Math.random() * 160) + 220);
+        }
+
+        return market;
+      }).filter(Boolean);
+    }
+
+    async function loadRealSportsGames() {
+      const leagueEndpoints = [
+        { sport: 'nfl',  url: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard' },
+        { sport: 'nba',  url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard' },
+        { sport: 'nhl',  url: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard' },
+        { sport: 'mlb',  url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard' },
+        { sport: 'college-football', url: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard' },
+        { sport: 'mens-college-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard' },
+        { sport: 'ufc',  url: 'https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard' },
+        { sport: 'college-baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/scoreboard' },
+        { sport: 'soccer', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard' },
+      ];
+
+      let collected = [];
+
+      for (const league of leagueEndpoints) {
+        try {
+          const res = await fetch(league.url, { cache: 'no-store' });
+          if (!res.ok) throw new Error('bad response');
+          const json = await res.json();
+          const games = parseESPNScoreboard(json, league.sport);
+          collected.push(...games);
+        } catch (err) {
+          console.log(`[type.bet] Could not load live ${league.sport} data (using fallback for this league)`);
+        }
+      }
+
+      if (collected.length >= 3) {
+        sportsMarkets = collected;
+        usingRealGames = true;
+        console.log('%c[type.bet] Loaded real games from ESPN', 'color:#4ade80');
+        return true;
+      } else {
+        loadFallbackGames();
+        return false;
+      }
+    }
+
+    async function refreshRealGames() {
+      const badgeText = document.getElementById('games-source-text');
+      if (badgeText) badgeText.textContent = 'Refreshing…';
+
+      const success = await loadRealSportsGames();
+
+      // Re-render everything
+      renderSportsbook(currentSportFilter);
+      updatePredictionMarkets(); // in case we want consistency
+
+      updateGamesSourceBadge();
+
+      if (success) {
+        showToast('Real games refreshed from ESPN');
+      } else {
+        showToast('Using demo games (no live data available right now)', true);
+      }
+    }
+
+    function updateGamesSourceBadge() {
+      const badge = document.getElementById('games-source-badge');
+      const text = document.getElementById('games-source-text');
+      if (!badge || !text) return;
+
+      if (usingRealGames) {
+        badge.className = 'px-2.5 py-px rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 cursor-pointer hover:border-emerald-400';
+        text.innerHTML = `<i class="fa-solid fa-globe mr-1"></i>Real ESPN data`;
+      } else {
+        badge.className = 'px-2.5 py-px rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30 cursor-pointer hover:border-amber-400';
+        text.innerHTML = `<i class="fa-solid fa-database mr-1"></i>Demo games`;
+      }
+    }
+
+    function updatePolymarketBadge() {
+      const badge = document.getElementById('polymarket-badge');
+      if (!badge) return;
+
+      if (usingPolymarketData) {
+        badge.className = 'px-2.5 py-px rounded-full text-[10px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/30';
+        badge.textContent = 'Live • Polymarket';
+      } else {
+        badge.className = 'px-2.5 py-px rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30';
+        badge.textContent = 'Demo markets';
+      }
+    }
+
+    async function refreshPolymarketMarkets() {
+      const badge = document.getElementById('polymarket-badge');
+      if (badge) badge.textContent = 'Refreshing...';
+
+      const success = await loadPolymarketMarkets();
+      updatePredictionMarkets();
+      updatePolymarketBadge();
+
+      if (success) {
+        showToast('Polymarket data refreshed');
+      } else {
+        showToast('Failed to refresh Polymarket data', true);
+      }
+    }
+
+    // Prediction markets
+    let predictionMarkets = [ // Fallback (used if Polymarket fails)
+      {
+        id: 'p1', category: 'Crypto', question: 'Will Bitcoin exceed $150,000 before July 2026?',
+        outcomes: [
+          { label: 'Yes', odds: -165 },
+          { label: 'No', odds: +135 }
+        ]
+      },
+      {
+        id: 'p2', category: 'Politics', question: 'Will the Fed cut rates at the March 2026 meeting?',
+        outcomes: [
+          { label: 'Yes', odds: +140 },
+          { label: 'No', odds: -170 }
+        ]
+      },
+      {
+        id: 'p3', category: 'Sports', question: 'Will the Kansas City Chiefs win Super Bowl LX?',
+        outcomes: [
+          { label: 'Yes', odds: +380 },
+          { label: 'No', odds: -520 }
+        ]
+      },
+      {
+        id: 'p4', category: 'Tech', question: 'Will OpenAI release GPT-5 before June 2026?',
+        outcomes: [
+          { label: 'Yes', odds: -240 },
+          { label: 'No', odds: +195 }
+        ]
+      },
+      {
+        id: 'p5', category: 'Entertainment', question: 'Who will win Best Picture at the 2026 Oscars?',
+        outcomes: [
+          { label: 'The Brutalist', odds: +180 },
+          { label: 'Dune: Messiah', odds: +240 },
+          { label: 'Wicked: For Good', odds: +310 },
+          { label: 'A Complete Unknown', odds: +450 }
+        ]
+      },
+      {
+        id: 'p6', category: 'Crypto', question: 'Will Ethereum flip Bitcoin in market cap in 2026?',
+        outcomes: [
+          { label: 'Yes', odds: +850 },
+          { label: 'No', odds: -1400 }
+        ]
+      }
+    ];
+
+    // Real prediction market data from Polymarket
+    let polymarketMarkets = [];
+    let usingPolymarketData = false;
+
+    async function loadPolymarketMarkets() {
+      try {
+        // Polymarket Gamma API - public, no key required
+        const res = await fetch('https://gamma-api.polymarket.com/markets?limit=30&active=true&closed=false&order=volume');
+        if (!res.ok) throw new Error('Polymarket API error');
+
+        const data = await res.json();
+
+        // Transform Polymarket data into our internal format
+        const transformed = data
+          .filter(m => m.active && !m.closed && m.outcomes && m.outcomePrices)
+          .slice(0, 9) // Limit to 9 markets for the demo
+          .map((m, index) => {
+            const outcomes = m.outcomes.map((label, i) => {
+              const prob = parseFloat(m.outcomePrices[i] || '0.5');
+              const american = probabilityToAmericanOdds(prob);
+              return {
+                label: label,
+                odds: american,
+                probability: prob   // keep real price for display
+              };
+            });
+
+            // Try to infer a nice category
+            let category = 'News';
+            const tags = (m.tags || []).map(t => (t.slug || t.label || '').toLowerCase());
+            if (tags.some(t => t.includes('crypto') || t.includes('bitcoin') || t.includes('eth'))) category = 'Crypto';
+            else if (tags.some(t => t.includes('election') || t.includes('politics') || t.includes('trump') || t.includes('president'))) category = 'Politics';
+            else if (tags.some(t => t.includes('sport') || t.includes('nfl') || t.includes('nba'))) category = 'Sports';
+            else if (tags.some(t => t.includes('tech') || t.includes('ai'))) category = 'Tech';
+
+            return {
+              id: `poly-${m.id || index}`,
+              category,
+              question: m.question,
+              slug: m.slug,
+              image: m.image,
+              volume: m.volumeNum,
+              liquidity: m.liquidityNum,
+              endDate: m.endDate || m.expirationDate,
+              outcomes,
+              isPolymarket: true
+            };
+          });
+
+        if (transformed.length >= 3) {
+          polymarketMarkets = transformed;
+          usingPolymarketData = true;
+          console.log('%c[type.bet] Loaded real markets from Polymarket', 'color:#22c55e');
+          return true;
+        }
+      } catch (err) {
+        console.warn('[type.bet] Failed to load Polymarket data, using fallback markets.', err);
+      }
+      return false;
+    }
+
+    // Convert 0-1 probability to American odds (for our fake betting system)
+    function probabilityToAmericanOdds(prob) {
+      if (prob >= 0.5) {
+        return Math.round(-100 * (prob / (1 - prob)));
+      } else {
+        return Math.round(100 * ((1 - prob) / prob));
+      }
+    }
+
+    function loadState() {
+      const savedBalance = localStorage.getItem('typebet_balance');
+      if (savedBalance) balance = parseFloat(savedBalance);
+
+      const savedOpen = localStorage.getItem('typebet_open_bets');
+      if (savedOpen) openBets = JSON.parse(savedOpen);
+
+      const savedSettled = localStorage.getItem('typebet_settled_bets');
+      if (savedSettled) settledBets = JSON.parse(savedSettled);
+
+      const savedSlip = localStorage.getItem('typebet_bet_slip');
+      if (savedSlip) betSlip = JSON.parse(savedSlip);
+    }
+
+    function saveState() {
+      localStorage.setItem('typebet_balance', balance.toFixed(2));
+      localStorage.setItem('typebet_open_bets', JSON.stringify(openBets));
+      localStorage.setItem('typebet_settled_bets', JSON.stringify(settledBets));
+      localStorage.setItem('typebet_bet_slip', JSON.stringify(betSlip));
+    }
+
+    function updateBalanceUI() {
+      const el = document.getElementById('balance');
+      el.textContent = balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatOdds(odds) {
+      if (odds > 0) return `+${odds}`;
+      return odds.toString();
+    }
+
+    function americanToDecimal(americanOdds) {
+      if (americanOdds > 0) {
+        return (americanOdds / 100) + 1;
+      } else {
+        return (100 / Math.abs(americanOdds)) + 1;
+      }
+    }
+
+    function calculatePayout(stake, selections) {
+      if (selections.length === 0) return 0;
+      
+      if (selections.length === 1) {
+        const decimal = americanToDecimal(selections[0].odds);
+        return stake * decimal;
+      } else {
+        // Parlay
+        let multiplier = 1;
+        selections.forEach(sel => {
+          multiplier *= americanToDecimal(sel.odds);
+        });
+        return stake * multiplier;
+      }
+    }
+
+    // Render Sportsbook
+    function renderSportsbook(filter = 'all') {
+      const tbody = document.getElementById('sports-table-body');
+      tbody.innerHTML = '';
+
+      let filtered = filter === 'all' 
+        ? [...sportsMarkets] 
+        : sportsMarkets.filter(m => m.sport === filter);
+
+      // Smart sorting for "All" view: most relevant games first
+      if (filter === 'all') {
+        const now = Date.now();
+
+        filtered.sort((a, b) => {
+          const aLive = a.isLive === true;
+          const bLive = b.isLive === true;
+          const aFinal = a.isFinal === true || a.time === 'FINAL';
+          const bFinal = b.isFinal === true || b.time === 'FINAL';
+
+          // LIVE games on top (most relevant)
+          if (aLive && !bLive) return -1;
+          if (!aLive && bLive) return 1;
+
+          // Among non-live, sort upcoming by start time (closest first)
+          if (!aFinal && !bFinal) {
+            const aTime = a.startTime || Infinity;
+            const bTime = b.startTime || Infinity;
+            return aTime - bTime;
+          }
+
+          // Finished games at the bottom
+          if (aFinal && !bFinal) return 1;
+          if (!aFinal && bFinal) return -1;
+
+          // Both final → keep original relative order or by start time
+          const aTime = a.startTime || 0;
+          const bTime = b.startTime || 0;
+          return aTime - bTime;
+        });
+      }
+
+      filtered.forEach(market => {
+        const tr = document.createElement('tr');
+        tr.className = `market-row border-b border-zinc-800 last:border-0`;
+        
+        let oddsHTML = '';
+        
+        if (market.odds.draw) {
+          // Soccer style with draw
+          oddsHTML = `
+            <td class="px-3 py-4">
+              <div class="flex gap-1.5 justify-center">
+                <button onclick="addToSlip('${market.id}', 'home', ${market.odds.home}, '${market.event}')" 
+                        data-market-id="${market.id}" data-selection="home"
+                        class="odds-btn flex-1 max-w-[68px] text-center py-1.5 text-sm rounded-xl border border-zinc-700 hover:border-emerald-500 bg-zinc-950 hover:bg-zinc-800 ${isSelected(market.id, 'home') ? 'selected' : ''}">
+                  <div class="text-[10px] text-zinc-500">HOME</div>
+                  <div class="odds-value font-semibold tabular-nums">${formatOdds(market.odds.home)}</div>
+                </button>
+                <button onclick="addToSlip('${market.id}', 'draw', ${market.odds.draw}, '${market.event}')" 
+                        data-market-id="${market.id}" data-selection="draw"
+                        class="odds-btn flex-1 max-w-[68px] text-center py-1.5 text-sm rounded-xl border border-zinc-700 hover:border-emerald-500 bg-zinc-950 hover:bg-zinc-800 ${isSelected(market.id, 'draw') ? 'selected' : ''}">
+                  <div class="text-[10px] text-zinc-500">DRAW</div>
+                  <div class="odds-value font-semibold tabular-nums">${formatOdds(market.odds.draw)}</div>
+                </button>
+                <button onclick="addToSlip('${market.id}', 'away', ${market.odds.away}, '${market.event}')" 
+                        data-market-id="${market.id}" data-selection="away"
+                        class="odds-btn flex-1 max-w-[68px] text-center py-1.5 text-sm rounded-xl border border-zinc-700 hover:border-emerald-500 bg-zinc-950 hover:bg-zinc-800 ${isSelected(market.id, 'away') ? 'selected' : ''}">
+                  <div class="text-[10px] text-zinc-500">AWAY</div>
+                  <div class="odds-value font-semibold tabular-nums">${formatOdds(market.odds.away)}</div>
+                </button>
+              </div>
+            </td>
+            <td class="px-3 py-4 text-center hidden sm:table-cell">
+              <div class="text-xs text-zinc-500">N/A</div>
+            </td>
+          `;
+        } else {
+          oddsHTML = `
+            <td class="px-3 py-4">
+              <div class="flex gap-1.5 justify-center">
+                <button onclick="addToSlip('${market.id}', 'home', ${market.odds.home}, '${market.event}')" 
+                        data-market-id="${market.id}" data-selection="home"
+                        class="odds-btn flex-1 max-w-[76px] text-center py-1.5 text-sm rounded-xl border border-zinc-700 hover:border-emerald-500 bg-zinc-950 hover:bg-zinc-800 ${isSelected(market.id, 'home') ? 'selected' : ''}">
+                  <div class="text-[10px] text-zinc-500">${market.event.split(' vs ')[0].trim().slice(0,12)}</div>
+                  <div class="odds-value font-semibold tabular-nums">${formatOdds(market.odds.home)}</div>
+                </button>
+                <button onclick="addToSlip('${market.id}', 'away', ${market.odds.away}, '${market.event}')" 
+                        data-market-id="${market.id}" data-selection="away"
+                        class="odds-btn flex-1 max-w-[76px] text-center py-1.5 text-sm rounded-xl border border-zinc-700 hover:border-emerald-500 bg-zinc-950 hover:bg-zinc-800 ${isSelected(market.id, 'away') ? 'selected' : ''}">
+                  <div class="text-[10px] text-zinc-500">${market.event.split(' vs ')[1].trim().slice(0,12)}</div>
+                  <div class="odds-value font-semibold tabular-nums">${formatOdds(market.odds.away)}</div>
+                </button>
+              </div>
+            </td>
+            <td class="px-3 py-4 text-center hidden sm:table-cell">
+              <div class="flex gap-1.5 justify-center">
+                <button onclick="addToSlip('${market.id}', 'home_spread', -110, '${market.event} (Spread)')" 
+                        data-market-id="${market.id}" data-selection="home_spread"
+                        class="odds-btn text-xs px-3 py-1 rounded-xl border border-zinc-700 hover:border-emerald-500 bg-zinc-950">
+                  -110
+                </button>
+              </div>
+            </td>
+            <td class="px-3 py-4 text-center hidden lg:table-cell">
+              <div class="flex gap-1.5 justify-center">
+                <button onclick="addToSlip('${market.id}', 'over', -110, '${market.event} (O/U)')" 
+                        data-market-id="${market.id}" data-selection="over"
+                        class="odds-btn text-xs px-3 py-1 rounded-xl border border-zinc-700 hover:border-emerald-500 bg-zinc-950">O 47.5</button>
+              </div>
+            </td>
+          `;
+        }
+
+        tr.innerHTML = `
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-x-3">
+              <div>
+                <div class="font-medium text-sm">${market.event}</div>
+                <div class="text-xs text-emerald-400 font-medium">${market.time}</div>
+              </div>
+            </div>
+          </td>
+          ${oddsHTML}
+          <td class="pr-4 text-right">
+            <button onclick="quickAddMarket('${market.id}')" 
+                    class="text-[10px] px-3 py-1 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function isSelected(marketId, selection) {
+      return betSlip.some(b => b.marketId === marketId && b.selection === selection);
+    }
+
+    function filterSport(sport) {
+      currentSportFilter = sport;
+      
+      // Update active states
+      document.querySelectorAll('.sport-filter').forEach(el => {
+        if (el.dataset.sport === sport) {
+          el.classList.add('active', 'bg-zinc-900', 'border-zinc-700');
+          el.classList.remove('border-transparent');
+        } else {
+          el.classList.remove('active', 'bg-zinc-900', 'border-zinc-700');
+          el.classList.add('border-transparent');
+        }
+      });
+      
+      renderSportsbook(sport);
+    }
+
+    function addToSlip(marketId, selection, odds, label) {
+      // Check if already in slip
+      const existingIndex = betSlip.findIndex(b => b.marketId === marketId && b.selection === selection);
+      
+      if (existingIndex !== -1) {
+        // Remove if already selected
+        betSlip.splice(existingIndex, 1);
+      } else {
+        // Always pull the *current live* odds at the moment of click (critical for live simulation)
+        let liveOdds = parseInt(odds);
+        
+        const sport = sportsMarkets.find(m => m.id === marketId);
+        if (sport) {
+          if (selection === 'home') liveOdds = sport.odds.home;
+          else if (selection === 'away') liveOdds = sport.odds.away;
+          else if (selection === 'draw') liveOdds = sport.odds.draw;
+        }
+        
+        const pred = predictionMarkets.find(m => m.id === marketId);
+        if (pred) {
+          const oc = pred.outcomes.find(o => o.label === selection);
+          if (oc) liveOdds = oc.odds;
+        }
+
+        betSlip.push({
+          id: Date.now() + Math.random(),
+          marketId,
+          selection,
+          odds: liveOdds,
+          label: label || `${selection.toUpperCase()} @ ${formatOdds(liveOdds)}`
+        });
+      }
+      
+      updateAllUI();
+      saveState();
+    }
+
+    function quickAddMarket(marketId) {
+      const market = sportsMarkets.find(m => m.id === marketId);
+      if (!market) return;
+
+      // Add the favorite (more negative or first side)
+      const homeOdds = market.odds.home;
+      const awayOdds = market.odds.away;
+      
+      const pickHome = homeOdds < awayOdds;
+      const selection = pickHome ? 'home' : 'away';
+      const odds = pickHome ? homeOdds : awayOdds;
+      
+      addToSlip(marketId, selection, odds, market.event);
+    }
+
+    function removeFromSlip(id) {
+      betSlip = betSlip.filter(b => b.id !== id);
+      updateAllUI();
+      saveState();
+    }
+
+    function clearBetSlip() {
+      betSlip = [];
+      updateAllUI();
+      saveState();
+    }
+
+    function updateBetSlipUI() {
+      // Desktop
+      const desktopContent = document.getElementById('bet-slip-content');
+      const countDesktop = document.getElementById('slip-count-desktop');
+      const totalStakeEl = document.getElementById('total-stake');
+      const payoutEl = document.getElementById('potential-payout');
+      const placeBtn = document.getElementById('place-bet-btn');
+
+      countDesktop.textContent = betSlip.length;
+
+      if (betSlip.length === 0) {
+        desktopContent.innerHTML = `<div class="text-center py-6 text-zinc-500 text-sm">Your bet slip is empty.<br>Click odds to add selections.</div>`;
+        totalStakeEl.textContent = '$0.00';
+        payoutEl.textContent = '$0.00';
+        placeBtn.disabled = true;
+      } else {
+        let html = '';
+        let totalStake = 0;
+        
+        // Default stake per leg or total?
+        const defaultStake = 100;
+
+        betSlip.forEach((bet, idx) => {
+          html += `
+            <div class="flex justify-between items-start bg-zinc-950 rounded-2xl p-3 border border-zinc-700">
+              <div class="min-w-0 pr-3">
+                <div class="text-xs text-emerald-400 font-medium">${bet.label}</div>
+                <div class="text-sm font-semibold leading-tight mt-0.5 line-clamp-2">${bet.selection.toUpperCase()} @ ${formatOdds(bet.odds)}</div>
+              </div>
+              <button onclick="removeFromSlip(${bet.id}); event.stopImmediatePropagation();" class="text-zinc-400 hover:text-red-400 text-lg leading-none mt-px">×</button>
+            </div>
+          `;
+        });
+
+        desktopContent.innerHTML = html;
+
+        const payout = calculatePayout(defaultStake, betSlip);
+        
+        totalStakeEl.textContent = '$' + defaultStake.toFixed(2);
+        payoutEl.textContent = '$' + payout.toFixed(2);
+        placeBtn.disabled = false;
+      }
+
+      // Mobile count
+      document.getElementById('slip-count-mobile').textContent = betSlip.length;
+
+      // Apply minimized state after every UI update
+      applyBetSlipMinimizedState();
+    }
+
+    function toggleBetSlipMinimize() {
+      isBetSlipMinimized = !isBetSlipMinimized;
+      localStorage.setItem('betSlipMinimized', isBetSlipMinimized);
+      applyBetSlipMinimizedState();
+    }
+
+    function applyBetSlipMinimizedState() {
+      const container = document.getElementById('bet-slip-desktop');
+      const expandedHeader = document.getElementById('bet-slip-header-expanded');
+      const collapsedBar = document.getElementById('bet-slip-collapsed');
+      const expandedContent = document.getElementById('bet-slip-expanded-content');
+
+      if (!container || !expandedHeader || !collapsedBar || !expandedContent) return;
+
+      if (isBetSlipMinimized) {
+        container.classList.remove('w-80');
+        container.classList.add('w-14', 'rounded-r-3xl', 'rounded-l-none');
+        
+        expandedHeader.classList.add('hidden');
+        expandedContent.classList.add('hidden');
+        collapsedBar.classList.remove('hidden');
+        collapsedBar.classList.add('flex');
+
+        // Update collapsed count
+        const countCollapsed = document.getElementById('slip-count-collapsed');
+        if (countCollapsed) countCollapsed.textContent = betSlip.length;
+      } else {
+        container.classList.remove('w-14', 'rounded-r-3xl', 'rounded-l-none');
+        container.classList.add('w-80');
+
+        expandedHeader.classList.remove('hidden');
+        expandedContent.classList.remove('hidden');
+        collapsedBar.classList.remove('flex');
+        collapsedBar.classList.add('hidden');
+      }
+    }
+
+    function placeBet() {
+      if (betSlip.length === 0) return;
+
+      const stake = 100; // fixed demo stake for simplicity. Could make this an input later.
+      
+      const payout = calculatePayout(stake, betSlip);
+      const potentialProfit = payout - stake;
+
+      const newBet = {
+        id: Date.now(),
+        placedAt: new Date().toISOString(),
+        stake: stake,
+        selections: [...betSlip],
+        potentialPayout: payout,
+        status: 'open'
+      };
+
+      if (balance < stake) {
+        showToast("Not enough balance in demo account. Click your balance to add funds.", true);
+        return;
+      }
+
+      balance -= stake;
+      openBets.unshift(newBet);
+      betSlip = [];
+
+      updateBalanceUI();
+      updateAllUI();
+      saveState();
+      
+      showToast(`Bet placed! $${stake} on ${newBet.selections.length} selection(s). Potential payout: $${payout.toFixed(2)}`);
+    }
+
+    function updateOpenBetsUI() {
+      const container = document.getElementById('open-bets-list');
+      const countEl = document.getElementById('open-bets-count');
+      
+      countEl.textContent = openBets.length;
+
+      if (openBets.length === 0) {
+        container.innerHTML = `<div class="text-sm text-center text-zinc-500 py-4 bg-zinc-950 rounded-2xl border border-zinc-800">No open bets. Place some above.</div>`;
+        return;
+      }
+
+      let html = '';
+      
+      openBets.forEach(bet => {
+        const selectionsText = bet.selections.map(s => s.selection.toUpperCase()).join(' + ');
+        const placedTime = new Date(bet.placedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        html += `
+          <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 text-sm">
+            <div>
+              <div class="font-medium">${selectionsText}</div>
+              <div class="text-xs text-zinc-400">${bet.selections.length} leg parlay • Placed ${placedTime}</div>
+            </div>
+            <div class="text-right">
+              <div class="font-semibold tabular-nums text-emerald-400">+$${bet.potentialPayout.toFixed(2)}</div>
+              <div class="text-xs text-zinc-400">Stake: $${bet.stake}</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function updateSettledBetsUI() {
+      const container = document.getElementById('settled-bets-list');
+      
+      if (settledBets.length === 0) {
+        container.innerHTML = `<div class="text-xs text-center py-2 text-zinc-500">No settled bets yet.<br>Click "SETTLE DEMO BETS" to simulate outcomes.</div>`;
+        return;
+      }
+
+      let html = '';
+      settledBets.slice(0, 4).forEach(bet => {
+        const isWin = bet.result === 'win';
+        const color = isWin ? 'text-emerald-400' : 'text-red-400';
+        const sign = isWin ? '+' : '-';
+        
+        html += `
+          <div class="flex items-center justify-between py-1.5 border-b border-zinc-800 last:border-b-0">
+            <div class="text-xs text-zinc-300">${bet.selections.length} leg • ${isWin ? 'WON' : 'LOST'}</div>
+            <div class="${color} tabular-nums font-medium text-sm">${sign}$${isWin ? (bet.payout - bet.stake).toFixed(2) : bet.stake}</div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function resolveDemoBets() {
+      if (openBets.length === 0) {
+        showToast("No open bets to settle.");
+        return;
+      }
+
+      let totalCredited = 0;
+      const newlySettled = [];
+
+      openBets.forEach(bet => {
+        // Simulate result: ~48% win rate for demo (slightly house edge)
+        const won = Math.random() < 0.48;
+        
+        const settledBet = {
+          ...bet,
+          status: 'settled',
+          result: won ? 'win' : 'loss',
+          settledAt: new Date().toISOString(),
+          payout: won ? bet.potentialPayout : 0
+        };
+        
+        if (won) {
+          balance += bet.potentialPayout;
+          totalCredited += bet.potentialPayout;
+        }
+        
+        newlySettled.push(settledBet);
+      });
+
+      settledBets = [...newlySettled, ...settledBets];
+      openBets = [];
+
+      updateBalanceUI();
+      updateAllUI();
+      saveState();
+
+      showToast(`Demo round settled. ${newlySettled.filter(b => b.result === 'win').length} win(s). $${totalCredited.toFixed(2)} credited.`);
+    }
+
+    function updatePredictionMarkets() {
+      const grid = document.getElementById('prediction-markets-grid');
+      grid.innerHTML = '';
+
+      const marketsToShow = usingPolymarketData && polymarketMarkets.length > 0 
+        ? polymarketMarkets 
+        : predictionMarkets;
+
+      marketsToShow.forEach(market => {
+        const card = document.createElement('div');
+        card.className = `betting-card bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-3xl p-5 flex flex-col`;
+        
+        let outcomesHTML = '';
+        
+        market.outcomes.forEach((outcome) => {
+          const isSelected = betSlip.some(b => b.marketId === market.id && b.selection === outcome.label);
+
+          // For Polymarket markets, show the real price in ¢
+          let priceDisplay = formatOdds(outcome.odds);
+          if (market.isPolymarket && outcome.probability !== undefined) {
+            const cents = Math.round(outcome.probability * 100);
+            priceDisplay = `${cents}¢`;
+          }
+
+          outcomesHTML += `
+            <button onclick="addPredictionToSlip('${market.id}', '${outcome.label}', ${outcome.odds}, '${market.question}')"
+                    data-market-id="${market.id}" data-selection="${outcome.label}"
+                    class="odds-btn flex-1 py-[9px] text-sm rounded-2xl border transition-all ${isSelected ? 'selected bg-emerald-500 border-emerald-500' : 'border-zinc-700 hover:border-emerald-500 bg-zinc-950'}">
+              <div class="flex justify-between px-4 items-baseline">
+                <span class="font-medium">${outcome.label}</span>
+                <span class="font-semibold tabular-nums">${priceDisplay}</span>
+              </div>
+            </button>
+          `;
+        });
+
+        // Polymarket badge + volume
+        let headerExtra = '';
+        if (market.isPolymarket) {
+          const vol = market.volume ? '$' + (market.volume / 1_000_000).toFixed(1) + 'M vol' : '';
+          headerExtra = `<span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">Polymarket ${vol}</span>`;
+        }
+
+        // Extra metadata for Polymarket markets
+        let metaHTML = '';
+        if (market.isPolymarket) {
+          const parts = [];
+          if (market.volume) {
+            parts.push(`<span>Vol: $${(market.volume / 1_000_000).toFixed(1)}M</span>`);
+          }
+          if (market.liquidity) {
+            parts.push(`<span>Liq: $${(market.liquidity / 1000).toFixed(0)}k</span>`);
+          }
+          if (market.endDate) {
+            const end = new Date(market.endDate);
+            parts.push(`<span>Ends ${end.toLocaleDateString([], {month:'short', day:'numeric'})}</span>`);
+          }
+          if (parts.length > 0) {
+            metaHTML = `<div class="mt-3 pt-3 border-t border-zinc-700 text-[10px] text-zinc-500 flex flex-wrap gap-x-3 gap-y-0.5">${parts.join('')}</div>`;
+          }
+        }
+
+        card.innerHTML = `
+          <div class="flex-1">
+            <div class="flex items-center mb-1">
+              <div class="uppercase text-emerald-400 text-xs font-semibold tracking-widest">${market.category}</div>
+              ${headerExtra}
+            </div>
+            <div class="font-semibold leading-snug text-[15px]">${market.question}</div>
+            ${metaHTML}
+          </div>
+          
+          <div class="flex gap-2 mt-5">
+            ${outcomesHTML}
+          </div>
+        `;
+        
+        grid.appendChild(card);
+      });
+    }
+
+    function addPredictionToSlip(marketId, label, odds, question) {
+      const existing = betSlip.findIndex(b => b.marketId === marketId && b.selection === label);
+      
+      if (existing !== -1) {
+        betSlip.splice(existing, 1);
+      } else {
+        // Pull fresh live odds at click time (supports both fallback and real Polymarket data)
+        let liveOdds = parseInt(odds);
+        let sourceMarkets = [...predictionMarkets, ...polymarketMarkets];
+        const pred = sourceMarkets.find(m => m.id === marketId);
+        if (pred) {
+          const oc = pred.outcomes.find(o => o.label === label);
+          if (oc) liveOdds = oc.odds;
+        }
+
+        betSlip.push({
+          id: Date.now() + Math.random(),
+          marketId,
+          selection: label,
+          odds: liveOdds,
+          label: `${question.substring(0, 42)}... — ${label}`
+        });
+      }
+      
+      updateAllUI();
+      saveState();
+    }
+
+    function updateAllUI() {
+      renderSportsbook(currentSportFilter);
+      updateBetSlipUI();
+      updateOpenBetsUI();
+      updateSettledBetsUI();
+      updatePredictionMarkets();
+    }
+
+    // ============================================
+    // LIVE ODDS SIMULATION
+    // ============================================
+
+    let liveOddsInterval = null;
+    let lastOddsUpdate = Date.now();
+
+    function startLiveOddsSimulation() {
+      if (liveOddsInterval) clearInterval(liveOddsInterval);
+
+      // Update roughly every 3.8 seconds — feels alive without being frantic
+      liveOddsInterval = setInterval(() => {
+        simulateLiveOdds();
+      }, 3800);
+
+      // Show a subtle "live" indicator
+      addLiveIndicator();
+    }
+
+    function stopLiveOddsSimulation() {
+      if (liveOddsInterval) {
+        clearInterval(liveOddsInterval);
+        liveOddsInterval = null;
+      }
+    }
+
+    function addLiveIndicator() {
+      const header = document.querySelector('#sportsbook h2.section-header');
+      if (!header || document.getElementById('live-odds-indicator')) return;
+
+      const badge = document.createElement('span');
+      badge.id = 'live-odds-indicator';
+      badge.className = 'ml-3 inline-flex items-center gap-x-1.5 rounded-full bg-emerald-500/10 px-2.5 py-px text-[10px] font-semibold text-emerald-400 border border-emerald-500/30';
+      badge.innerHTML = `
+        <span class="live-dot inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+        <span>LIVE ODDS</span>
+      `;
+      header.appendChild(badge);
+    }
+
+    function simulateLiveOdds() {
+      // Pick 3–5 markets to move this tick (mix of sports + predictions)
+      const sportsToMove = [...sportsMarkets].sort(() => Math.random() - 0.5).slice(0, 3);
+      const predsToMove = [...predictionMarkets].sort(() => Math.random() - 0.5).slice(0, 2);
+
+      let changedAny = false;
+
+      // --- Sports markets ---
+      sportsToMove.forEach(market => {
+        const changed = moveSportsOdds(market);
+        if (changed) {
+          changedAny = true;
+          surgicallyUpdateSportsOdds(market);
+        }
+      });
+
+      // --- Prediction markets ---
+      predsToMove.forEach(market => {
+        const changed = movePredictionOdds(market);
+        if (changed) {
+          changedAny = true;
+          surgicallyUpdatePredictionOdds(market);
+        }
+      });
+
+      if (changedAny) {
+        lastOddsUpdate = Date.now();
+        // Sync any selections currently sitting in the bet slip
+        syncBetSlipWithLiveOdds();
+      }
+    }
+
+    function moveSportsOdds(market) {
+      let moved = false;
+      const volatility = market.sport === 'ufc' ? 22 : market.sport === 'soccer' ? 14 : 9;
+
+      function tweak(value, maxShift) {
+        // Small realistic movement
+        const shift = Math.floor(Math.random() * (maxShift * 2 + 1)) - maxShift;
+        let newVal = value + shift;
+
+        // Keep odds in sane ranges
+        if (newVal > 0) newVal = Math.min(newVal, 850);
+        else newVal = Math.max(newVal, -820);
+
+        // Occasionally push toward even money on heavy favorites
+        if (value < -300 && Math.random() < 0.35) newVal += 15;
+
+        return newVal;
+      }
+
+      if (market.odds.home !== undefined) {
+        const old = market.odds.home;
+        market.odds.home = tweak(market.odds.home, volatility);
+        if (Math.abs(market.odds.home - old) >= 3) moved = true;
+      }
+      if (market.odds.away !== undefined) {
+        const old = market.odds.away;
+        market.odds.away = tweak(market.odds.away, volatility);
+        if (Math.abs(market.odds.away - old) >= 3) moved = true;
+      }
+      if (market.odds.draw !== undefined) {
+        const old = market.odds.draw;
+        market.odds.draw = tweak(market.odds.draw, 18);
+        if (Math.abs(market.odds.draw - old) >= 4) moved = true;
+      }
+
+      return moved;
+    }
+
+    function movePredictionOdds(market) {
+      let moved = false;
+      const vol = market.category === 'Crypto' || market.category === 'Politics' ? 18 : 11;
+
+      market.outcomes.forEach(outcome => {
+        const old = outcome.odds;
+        const shift = Math.floor(Math.random() * (vol * 2 + 1)) - vol;
+        let nv = outcome.odds + shift;
+
+        if (nv > 0) nv = Math.min(nv, 1200);
+        else nv = Math.max(nv, -950);
+
+        outcome.odds = nv;
+        if (Math.abs(nv - old) >= 4) moved = true;
+      });
+
+      return moved;
+    }
+
+    // Surgical update for sports table (no full re-render)
+    function surgicallyUpdateSportsOdds(market) {
+      const buttons = document.querySelectorAll(`button[data-market-id="${market.id}"]`);
+      buttons.forEach(btn => {
+        const sel = btn.dataset.selection;
+        let newOdd;
+
+        if (sel === 'home') newOdd = market.odds.home;
+        else if (sel === 'away') newOdd = market.odds.away;
+        else if (sel === 'draw') newOdd = market.odds.draw;
+        else return; // spread/over are fake static for demo
+
+        const valueEl = btn.querySelector('.odds-value');
+        if (!valueEl) return;
+
+        const oldText = valueEl.textContent.trim();
+        const newText = formatOdds(newOdd);
+
+        if (oldText === newText) return;
+
+        // Determine if this move is good or bad for someone who already has it selected
+        const wasSelected = btn.classList.contains('selected');
+        const oldNum = parseInt(oldText.replace('+', ''));
+        const newNum = parseInt(newText.replace('+', ''));
+        const gotBetter = (oldNum < 0 && newNum > oldNum) || (oldNum > 0 && newNum < oldNum); // lower |number| or higher positive
+
+        valueEl.textContent = newText;
+
+        // Flash animation
+        btn.classList.remove('odds-flash-up', 'odds-flash-down');
+        void btn.offsetWidth; // force reflow
+        btn.classList.add(gotBetter ? 'odds-flash-up' : 'odds-flash-down');
+
+        setTimeout(() => {
+          btn.classList.remove('odds-flash-up', 'odds-flash-down');
+        }, 700);
+      });
+    }
+
+    function surgicallyUpdatePredictionOdds(market) {
+      const buttons = document.querySelectorAll(`button[data-market-id="${market.id}"]`);
+      buttons.forEach(btn => {
+        const sel = btn.dataset.selection;
+        const outcome = market.outcomes.find(o => o.label === sel);
+        if (!outcome) return;
+
+        const valueEl = btn.querySelector('.odds-value');
+        if (!valueEl) return;
+
+        const oldText = valueEl.textContent.trim();
+        const newText = formatOdds(outcome.odds);
+
+        if (oldText === newText) return;
+
+        const oldNum = parseInt(oldText.replace('+', ''));
+        const newNum = parseInt(newText.replace('+', ''));
+        const gotBetter = (oldNum < 0 && newNum > oldNum) || (oldNum > 0 && newNum < oldNum);
+
+        valueEl.textContent = newText;
+
+        btn.classList.remove('odds-flash-up', 'odds-flash-down');
+        void btn.offsetWidth;
+        btn.classList.add(gotBetter ? 'odds-flash-up' : 'odds-flash-down');
+
+        setTimeout(() => btn.classList.remove('odds-flash-up', 'odds-flash-down'), 700);
+      });
+    }
+
+    function syncBetSlipWithLiveOdds() {
+      let anyChanged = false;
+
+      betSlip.forEach(item => {
+        // Find current live odds for this selection
+        let currentOdds = null;
+
+        // Sports
+        const sportMarket = sportsMarkets.find(m => m.id === item.marketId);
+        if (sportMarket) {
+          if (item.selection === 'home') currentOdds = sportMarket.odds.home;
+          else if (item.selection === 'away') currentOdds = sportMarket.odds.away;
+          else if (item.selection === 'draw') currentOdds = sportMarket.odds.draw;
+        }
+
+        // Predictions
+        const predMarket = predictionMarkets.find(m => m.id === item.marketId);
+        if (predMarket) {
+          const oc = predMarket.outcomes.find(o => o.label === item.selection);
+          if (oc) currentOdds = oc.odds;
+        }
+
+        if (currentOdds !== null && currentOdds !== item.odds) {
+          item.odds = currentOdds;
+          anyChanged = true;
+        }
+      });
+
+      if (anyChanged) {
+        updateBetSlipUI();
+        // Gentle nudge so user knows odds moved on their slip
+        const slip = document.getElementById('bet-slip-desktop');
+        if (slip) {
+          slip.style.transition = 'box-shadow 0.2s';
+          slip.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.3)';
+          setTimeout(() => {
+            if (slip) slip.style.boxShadow = '-10px 0 15px -3px rgb(0 0 0 / 0.3)';
+          }, 1100);
+        }
+      }
+    }
+
+    function filterSportFromClick(sport) {
+      // used by mobile filters if needed
+      filterSport(sport);
+    }
+
+    function showDepositModal() {
+      document.getElementById('deposit-modal').classList.remove('hidden');
+      document.getElementById('deposit-modal').classList.add('flex');
+      updateWalletUI(); // Refresh wallet connection status
+    }
+
+    function hideDepositModal() {
+      const modal = document.getElementById('deposit-modal');
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+
+    function quickDeposit(amount) {
+      balance += amount;
+      updateBalanceUI();
+      saveState();
+      hideDepositModal();
+      showToast(`Demo account funded with +$${amount}`);
+    }
+
+    function showMobileBetSlip() {
+      const modal = document.getElementById('mobile-betslip-modal');
+      const content = document.getElementById('mobile-betslip-content');
+      
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (betSlip.length === 0) {
+        content.innerHTML = `<div class="text-center py-8 text-zinc-500">No selections yet.<br>Tap odds in the sportsbook or markets.</div>`;
+        document.getElementById('mobile-total-stake').textContent = '$0.00';
+        document.getElementById('mobile-potential-payout').textContent = '$0.00';
+        return;
+      }
+
+      let html = '';
+      betSlip.forEach(bet => {
+        html += `
+          <div class="flex justify-between bg-zinc-950 rounded-2xl p-3 mb-2 border border-zinc-700">
+            <div class="text-sm pr-4">
+              <div class="font-medium">${bet.label}</div>
+              <div class="text-emerald-400 text-xs mt-px">${formatOdds(bet.odds)}</div>
+            </div>
+            <button onclick="removeFromSlip(${bet.id}); showMobileBetSlip();" class="text-red-400 text-xl self-start">×</button>
+          </div>
+        `;
+      });
+
+      content.innerHTML = html;
+
+      const stake = 100;
+      const payout = calculatePayout(stake, betSlip);
+      document.getElementById('mobile-total-stake').textContent = '$' + stake.toFixed(2);
+      document.getElementById('mobile-potential-payout').textContent = '$' + payout.toFixed(2);
+      document.getElementById('slip-count-modal').textContent = `(${betSlip.length})`;
+    }
+
+    function hideMobileBetSlip() {
+      const modal = document.getElementById('mobile-betslip-modal');
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+
+    function showToast(message, isError = false) {
+      const container = document.getElementById('toast-container');
+      
+      const toast = document.createElement('div');
+      toast.className = `px-5 py-3 rounded-2xl shadow-xl max-w-xs text-sm flex items-start gap-2 border ${isError ? 'bg-red-900/80 border-red-800 text-red-200' : 'bg-zinc-900 border-zinc-700 text-white'}`;
+      toast.innerHTML = `
+        <div class="flex-1">${message}</div>
+        <button class="opacity-60 hover:opacity-100 text-lg leading-none pt-px">×</button>
+      `;
+      
+      toast.querySelector('button').onclick = () => toast.remove();
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 5200);
+    }
+
+    function showHowItWorks() {
+      const modal = document.createElement('div');
+      modal.className = `fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-5`;
+      modal.innerHTML = `
+        <div onclick="event.target.remove()" class="absolute inset-0"></div>
+        <div onclick="event.stopImmediatePropagation()" class="relative max-w-md bg-zinc-900 border border-zinc-700 rounded-3xl p-7 text-sm">
+          <div class="font-semibold text-lg mb-3">This is a Demo Only</div>
+          
+          <div class="space-y-4 text-zinc-300">
+            <div>1. <span class="font-medium">Browse markets</span> — Real sports &amp; prediction markets pulled from public data.</div>
+            <div>2. <span class="font-medium">Add selections</span> — Click odds to build a bet slip (singles or parlays).</div>
+            <div>3. <span class="font-medium">Place bet</span> — Uses fake demo balance only. No real money is involved.</div>
+            <div>4. <span class="font-medium">Settle</span> — Click "SETTLE DEMO BETS" to randomly simulate outcomes and payouts.</div>
+          </div>
+
+          <div class="mt-5 p-3 bg-zinc-950 border border-zinc-700 rounded-2xl text-xs text-amber-300">
+            <strong>Important:</strong> This is a non-functional prototype for demonstration and design purposes only. 
+            No real money gambling, deposits, or betting services are offered or available.
+          </div>
+          
+          <button onclick="this.closest('.fixed').remove()" class="mt-5 w-full py-3 rounded-2xl border border-zinc-700 font-semibold">Got it</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function showAllMarketsModal() {
+      const modal = document.createElement('div');
+      modal.className = `fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-5`;
+      
+      const sourceMarkets = usingPolymarketData && polymarketMarkets.length > 0 ? polymarketMarkets : predictionMarkets;
+      let marketsHTML = '';
+      sourceMarkets.forEach(m => {
+        const source = m.isPolymarket ? 'Polymarket' : 'Demo';
+        marketsHTML += `<div class="border-b border-zinc-800 py-3 last:border-b-0">
+          <div class="font-medium">${m.question}</div>
+          <div class="text-xs text-emerald-400 mt-1">${m.category} • ${m.outcomes.length} outcomes • ${source}</div>
+        </div>`;
+      });
+
+      modal.innerHTML = `
+        <div onclick="event.target.remove()" class="absolute inset-0"></div>
+        <div onclick="event.stopImmediatePropagation()" class="relative w-full max-w-lg bg-zinc-900 border border-zinc-700 rounded-3xl p-6 max-h-[80vh] overflow-auto">
+          <div class="flex justify-between mb-4">
+            <div class="font-semibold">Prediction Markets</div>
+            <button onclick="this.closest('.fixed').remove()" class="text-xl leading-none">×</button>
+          </div>
+          <div class="text-sm space-y-1">${marketsHTML}</div>
+          <div class="text-xs text-center text-zinc-500 mt-6">
+            ${usingPolymarketData ? 'Live data from Polymarket' : 'Demo markets (fallback)'}
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function toggleMobileMenu() {
+      // Simple mobile nav
+      const menu = document.createElement('div');
+      menu.className = `fixed inset-0 bg-black/90 z-[100] md:hidden`;
+      menu.innerHTML = `
+        <div class="bg-zinc-900 w-3/4 h-full p-6 border-r border-zinc-700">
+          <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-x-3">
+              <div class="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center">
+                <span class="text-black font-black text-2xl tracking-tighter">T</span>
+              </div>
+              <span class="font-semibold text-xl">type.bet</span>
+            </div>
+            <button class="text-3xl text-zinc-400">×</button>
+          </div>
+          
+          <div class="space-y-1 text-lg font-medium">
+            <div onclick="document.getElementById('sportsbook').scrollIntoView({behavior:'smooth'}); this.closest('.fixed').remove()" class="py-3 cursor-pointer">Sportsbook</div>
+            <div onclick="document.getElementById('predictions').scrollIntoView({behavior:'smooth'}); this.closest('.fixed').remove()" class="py-3 cursor-pointer">Markets</div>
+            <div onclick="document.getElementById('crypto').scrollIntoView({behavior:'smooth'}); this.closest('.fixed').remove()" class="py-3 cursor-pointer">Crypto Market</div>
+            <div onclick="document.getElementById('sport-news').scrollIntoView({behavior:'smooth'}); this.closest('.fixed').remove()" class="py-3 cursor-pointer">Sport News</div>
+            <div onclick="document.getElementById('activity').scrollIntoView({behavior:'smooth'}); this.closest('.fixed').remove()" class="py-3 cursor-pointer">Your Activity</div>
+          </div>
+          
+          <div class="absolute bottom-8 text-xs text-zinc-500">Demo version • Not real betting</div>
+        </div>
+      `;
+      
+      menu.onclick = (e) => { if (e.target === menu) menu.remove(); };
+      menu.querySelector('button').onclick = () => menu.remove();
+      document.body.appendChild(menu);
+    }
+
+    function initializeSportFilters() {
+      // The filters are already wired via onclick in HTML
+      // Add keyboard support or additional mobile filters if needed later
+    }
+
+    function initializeData() {
+      // Seed a demo open bet only if none exist (and only with valid current markets)
+      if (openBets.length === 0 && settledBets.length === 0) {
+        // We'll let the user place the first real bet instead of seeding stale data
+      }
+    }
+
+    function initializeEventListeners() {
+      // Keyboard shortcut for clearing slip
+      document.addEventListener('keydown', function(e) {
+        if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+          e.preventDefault();
+          if (betSlip.length > 0) clearBetSlip();
+        }
+      });
+
+      // Warn before leaving if they have money on open bets (demo)
+      window.addEventListener('beforeunload', function (e) {
+        if (openBets.length > 0) {
+          e.preventDefault();
+          e.returnValue = '';
+        }
+      });
+    }
+
+    function initializeAgeGate() {
+      // Simple non-blocking notice
+      // In a real product this would be a hard gate
+    }
+
+    async function initialize() {
+      // Check for demo access password first (blocks the rest of the site)
+      const hasAccess = checkDemoAccess();
+      if (!hasAccess) {
+        // Stop initialization until user enters correct password
+        addClearAccessHelper();
+        return;
+      }
+
+      // Update the displayed name in the navbar from what they entered in the gate
+      updateUserDisplay();
+
+      // Make profile clickable to open editor
+      const profileEl = document.getElementById('user-profile');
+      if (profileEl) {
+        profileEl.onclick = showProfileEditor;
+      }
+
+      // Initialize Crypto Market section
+      initCryptoMarket();
+
+      // Initialize Sport News section
+      initSportNews();
+
+      // Apply saved bet slip minimized state
+      setTimeout(() => {
+        applyBetSlipMinimizedState();
+      }, 50);
+
+      // Check for previously connected wallet
+      setTimeout(() => {
+        const profile = getProfile();
+        if (profile.walletAddress) {
+          connectedWallet = { address: profile.walletAddress };
+          updateWalletUI();
+        }
+      }, 100);
+
+      initializeTailwind();
+      loadState();
+      initializeData();
+      
+      updateBalanceUI();
+
+      // Load real games from ESPN first (this is the big upgrade)
+      const loadedReal = await loadRealSportsGames();
+
+      // Load real prediction markets from Polymarket
+      const loadedPolymarket = await loadPolymarketMarkets();
+
+      renderSportsbook('all');
+      updatePredictionMarkets();
+      updateAllUI();
+      
+      updateGamesSourceBadge();
+      updatePolymarketBadge();
+
+      initializeSportFilters();
+      initializeEventListeners();
+      initializeAgeGate();
+
+      // Start live odds simulation on top of the (real or demo) games
+      startLiveOddsSimulation();
+
+      // Small burst so movement is visible immediately
+      setTimeout(() => {
+        for (let i = 0; i < 2; i++) {
+          setTimeout(() => simulateLiveOdds(), i * 420);
+        }
+      }, 1350);
+
+      // Show welcome toast once
+      setTimeout(() => {
+        if (!localStorage.getItem('typebet_welcomed')) {
+          localStorage.setItem('typebet_welcomed', 'true');
+        }
+      }, 1400);
+
+      // Logo click → refresh to home page
+      const logoHome = document.getElementById('logo-home');
+      if (logoHome) {
+        logoHome.onclick = () => {
+          window.location.reload();
+        };
+      }
+
+      if (loadedReal) {
+        console.log('%c[type.bet] Using REAL current games from ESPN + live simulated odds', 'color:#4ade80');
+      } else {
+        console.log('%c[type.bet] Using fallback demo games', 'color:#f59e0b');
+      }
+
+      if (loadedPolymarket) {
+        console.log('%c[type.bet] Using REAL prediction markets from Polymarket', 'color:#a855f7');
+      } else {
+        console.log('%c[type.bet] Using fallback prediction markets', 'color:#f59e0b');
+      }
+    }
+
+    // ============================================
+    // SIMPLE DEMO ACCESS PASSWORD GATE
+    // ============================================
+
+    // ⚠️ CHANGE THIS PASSWORD before sharing the demo
+    const DEMO_ACCESS_PASSWORD = "typebet2026";   // ← Edit this value
+
+    function checkDemoAccess() {
+      const hasAccess = localStorage.getItem('typebet_access_granted') === 'true';
+
+      if (hasAccess) {
+        addClearAccessHelper();
+        updateUserDisplay(); // Make sure the saved name shows on refresh
+        return true; // User already passed the gate
+      }
+
+      // Create and show the password gate
+      const gate = document.createElement('div');
+      gate.id = 'demo-access-gate';
+      gate.className = 'fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-6';
+      gate.innerHTML = `
+        <div class="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
+          <div class="text-center mb-6">
+            <div class="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-lock text-emerald-400 text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-semibold tracking-tight">Private Demo</h2>
+            <p class="text-zinc-400 mt-2 text-sm">
+              This is a private prototype of <span class="font-medium text-white">type.bet</span>.
+            </p>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5 ml-1">Your Name</label>
+              <input 
+                id="access-name-input" 
+                type="text" 
+                placeholder="Alex Rivera"
+                class="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2.5 text-sm outline-none"
+              >
+            </div>
+
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5 ml-1">Email Address <span class="text-zinc-600">(optional)</span></label>
+              <input 
+                id="access-email-input" 
+                type="email" 
+                placeholder="you@company.com"
+                class="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2.5 text-sm outline-none"
+              >
+            </div>
+
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5 ml-1">Access Code <span class="text-red-400">*</span></label>
+              <input 
+                id="access-password-input" 
+                type="password" 
+                placeholder="Enter the code you were given"
+                class="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2.5 text-sm tracking-widest outline-none"
+                autocomplete="off"
+                required
+              >
+            </div>
+            
+            <button 
+              id="access-submit-btn"
+              class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-500 transition-colors text-black font-semibold py-3 rounded-2xl text-sm mt-2"
+            >
+              Access Private Demo
+            </button>
+          </div>
+
+          <div class="mt-6 text-center text-[11px] text-zinc-500 leading-snug">
+            This is a demonstration prototype only.<br>
+            No real money or gambling services are offered.
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(gate);
+
+      const nameInput = gate.querySelector('#access-name-input');
+      const emailInput = gate.querySelector('#access-email-input');
+      const passwordInput = gate.querySelector('#access-password-input');
+      const submitBtn = gate.querySelector('#access-submit-btn');
+
+      function logAccess(name, email) {
+        try {
+          const logs = JSON.parse(localStorage.getItem('typebet_access_logs') || '[]');
+          logs.push({
+            name: name || 'Anonymous',
+            email: email,
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent
+          });
+          localStorage.setItem('typebet_access_logs', JSON.stringify(logs));
+        } catch (e) {
+          console.warn('Could not save access log');
+        }
+      }
+
+      function attemptAccess() {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        const name = nameInput.value.trim();
+
+        if (password !== DEMO_ACCESS_PASSWORD) {
+          passwordInput.classList.add('border-red-500', 'shake');
+          submitBtn.textContent = 'Incorrect access code';
+          submitBtn.classList.add('!bg-red-500', 'text-white');
+
+          setTimeout(() => {
+            passwordInput.classList.remove('border-red-500', 'shake');
+            submitBtn.textContent = 'Access Private Demo';
+            submitBtn.classList.remove('!bg-red-500', 'text-white');
+          }, 1800);
+          return;
+        }
+
+        // Success
+        localStorage.setItem('typebet_access_granted', 'true');
+        logAccess(name, email);
+
+        // Save the user's name so it shows in the top bar
+        if (name && name.trim()) {
+          localStorage.setItem('typebet_user_name', name.trim());
+        }
+
+        gate.style.transition = 'opacity 0.25s ease';
+        gate.style.opacity = '0';
+
+        setTimeout(() => {
+          gate.remove();
+          updateUserDisplay();   // Update the navbar name immediately
+          setTimeout(() => {
+            showToast(`Welcome${name ? ', ' + name.split(' ')[0] : ''}`);
+          }, 350);
+        }, 220);
+      }
+
+      submitBtn.onclick = attemptAccess;
+
+      // Allow Enter key on any field
+      [nameInput, emailInput, passwordInput].forEach(input => {
+        input.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            attemptAccess();
+          }
+        });
+      });
+
+      // Focus email field by default
+      setTimeout(() => emailInput.focus(), 120);
+
+      return false; // Access not yet granted
+    }
+
+    // Developer helpers for the owner of the demo
+    function addClearAccessHelper() {
+      let pressCount = 0;
+      let lastPress = 0;
+
+      document.addEventListener('keydown', function(e) {
+        // Press "?" three times quickly → clear your own access (for testing)
+        if (e.key === '?') {
+          const now = Date.now();
+          if (now - lastPress < 800) {
+            pressCount++;
+          } else {
+            pressCount = 1;
+          }
+          lastPress = now;
+
+          if (pressCount >= 3) {
+            localStorage.removeItem('typebet_access_granted');
+            location.reload();
+          }
+        }
+
+        // Secret command: type "viewaccess" in console or press Ctrl/Cmd + Shift + L
+        // to dump the list of people who accessed the demo
+      });
+
+      // Keyboard shortcut: Cmd/Ctrl + Shift + L → show access logs in console
+      document.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+          e.preventDefault();
+          showAccessLogs();
+        }
+      });
+
+      // Also expose a global function for convenience
+      window.viewDemoAccess = showAccessLogs;
+    }
+
+    function showAccessLogs() {
+      const logs = JSON.parse(localStorage.getItem('typebet_access_logs') || '[]');
+      if (logs.length === 0) {
+        console.log('%c[type.bet] No one has accessed the demo yet.', 'color:#64748b');
+        return;
+      }
+
+      console.log('%c[type.bet] Demo Access Log (' + logs.length + ' entries)', 'color:#a855f7; font-weight:600');
+      console.table(logs.map(log => ({
+        Name: log.name,
+        Email: log.email,
+        'Accessed At': new Date(log.timestamp).toLocaleString(),
+      })));
+      console.log('%cTip: Copy this data or take a screenshot. Run window.clearDemoAccessLogs() to delete the log.', 'color:#64748b; font-size:10px');
+    }
+
+    window.clearDemoAccessLogs = function() {
+      localStorage.removeItem('typebet_access_logs');
+      console.log('%c[type.bet] Access logs cleared.', 'color:#22c55e');
+    };
+
+    // ============================================
+    // PHANTOM WALLET CONNECTION (Solana Demo)
+    // ============================================
+
+    let connectedWallet = null; // { address, provider }
+
+    function getPhantomProvider() {
+      if ('phantom' in window) {
+        const provider = window.phantom?.solana;
+        if (provider?.isPhantom) {
+          return provider;
+        }
+      }
+      // Fallback for some environments
+      if (window.solana?.isPhantom) {
+        return window.solana;
+      }
+      return null;
+    }
+
+    async function connectPhantomWallet() {
+      const provider = getPhantomProvider();
+
+      if (!provider) {
+        showToast('Phantom wallet not found. Please install it from phantom.app', true);
+        window.open('https://phantom.app/', '_blank');
+        return;
+      }
+
+      try {
+        const resp = await provider.connect();
+        const address = resp.publicKey.toString();
+
+        connectedWallet = {
+          address,
+          provider
+        };
+
+        // Save to profile
+        const profile = getProfile();
+        profile.walletAddress = address;
+        saveProfile(profile);
+
+        updateWalletUI();
+        showToast(`Connected: ${address.slice(0, 4)}...${address.slice(-4)}`);
+
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to connect to Phantom', true);
+      }
+    }
+
+    async function disconnectPhantomWallet() {
+      const provider = connectedWallet?.provider || getPhantomProvider();
+
+      if (provider) {
+        try {
+          await provider.disconnect();
+        } catch (e) {}
+      }
+
+      connectedWallet = null;
+
+      // Remove from profile
+      const profile = getProfile();
+      delete profile.walletAddress;
+      saveProfile(profile);
+
+      updateWalletUI();
+      showToast('Wallet disconnected');
+    }
+
+    function updateWalletUI() {
+      const container = document.getElementById('wallet-section');
+      if (!container) return;
+
+      const profile = getProfile();
+      const savedAddress = profile.walletAddress;
+      const currentAddress = connectedWallet?.address || savedAddress;
+
+      if (currentAddress) {
+        const short = `${currentAddress.slice(0, 6)}...${currentAddress.slice(-4)}`;
+
+        container.innerHTML = `
+          <div class="bg-zinc-950 border border-zinc-700 rounded-2xl p-3">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <div class="text-xs text-emerald-400">Connected to Phantom</div>
+                <div class="font-mono text-sm">${short}</div>
+              </div>
+              <button onclick="disconnectPhantomWallet()" 
+                      class="text-xs px-3 py-1 rounded-xl border border-zinc-700 hover:bg-red-500/10 hover:border-red-500/50 text-red-400">
+                Disconnect
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-3">
+              <button onclick="simulateWalletDeposit(0.5, 'SOL')" 
+                      class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-xl py-2 text-xs flex flex-col items-center">
+                <span class="font-medium">Deposit 0.5 SOL</span>
+                <span class="text-[10px] text-zinc-500">(Demo)</span>
+              </button>
+              <button onclick="simulateWalletDeposit(50, 'USDT')" 
+                      class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-xl py-2 text-xs flex flex-col items-center">
+                <span class="font-medium">Deposit 50 USDT</span>
+                <span class="text-[10px] text-zinc-500">(Demo)</span>
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <button onclick="connectPhantomWallet()" 
+                  class="w-full flex items-center justify-center gap-x-2 bg-purple-600 hover:bg-purple-500 active:bg-purple-600 text-white font-medium py-2.5 rounded-2xl text-sm">
+            <i class="fa-brands fa-solana"></i>
+            <span>Connect Phantom Wallet</span>
+          </button>
+          <div class="text-[10px] text-center text-zinc-500 mt-1.5">
+            Demo only — no real transactions
+          </div>
+        `;
+      }
+    }
+
+    function simulateWalletDeposit(amount, token) {
+      const profile = getProfile();
+      const wallet = profile.walletAddress || connectedWallet?.address;
+
+      if (!wallet) {
+        showToast('Please connect your Phantom wallet first', true);
+        return;
+      }
+
+      // Credit the demo balance
+      const usdValue = token === 'SOL' ? amount * 150 : amount; // Rough demo conversion
+      balance += usdValue;
+
+      updateBalanceUI();
+      saveState();
+      hideDepositModal();
+
+      showToast(`Demo deposit successful: +${amount} ${token} (~$${usdValue.toFixed(0)})`);
+
+      // Log the "deposit"
+      console.log(`[type.bet] Demo deposit from ${wallet}: ${amount} ${token}`);
+    }
+
+    function updateUserDisplay() {
+      const nameEl = document.getElementById('user-display-name');
+      const avatarEl = document.getElementById('user-avatar');
+
+      const savedName = localStorage.getItem('typebet_user_name');
+      const displayName = (savedName && savedName.trim()) ? savedName.trim() : 'Alex Rivera';
+
+      if (nameEl) {
+        nameEl.textContent = displayName;
+      }
+
+      if (avatarEl) {
+        const initials = getInitials(displayName);
+        avatarEl.innerHTML = `<span>${initials}</span>`;
+
+        // Give it a slightly nicer background when showing initials
+        if (initials !== '?') {
+          avatarEl.classList.add('bg-zinc-600');
+          avatarEl.classList.remove('bg-zinc-700');
+        }
+      }
+    }
+
+    function getInitials(fullName) {
+      if (!fullName || typeof fullName !== 'string') return '?';
+
+      const words = fullName.trim().split(/\s+/);
+      if (words.length === 0) return '?';
+
+      if (words.length === 1) {
+        return words[0].charAt(0).toUpperCase();
+      }
+
+      const first = words[0].charAt(0).toUpperCase();
+      const last = words[words.length - 1].charAt(0).toUpperCase();
+      return first + last;
+    }
+
+    // Profile management (name, email, avatar icon)
+    function getProfile() {
+      try {
+        const raw = localStorage.getItem('typebet_profile');
+        if (raw) {
+          return JSON.parse(raw);
+        }
+        // Migration from old storage
+        const oldName = localStorage.getItem('typebet_user_name');
+        if (oldName) {
+          const migrated = { name: oldName, email: '', avatarIcon: null };
+          localStorage.setItem('typebet_profile', JSON.stringify(migrated));
+          return migrated;
+        }
+      } catch (e) {}
+      return { name: 'Alex Rivera', email: '', avatarIcon: null };
+    }
+
+    function saveProfile(profile) {
+      localStorage.setItem('typebet_profile', JSON.stringify(profile));
+      // Keep backward compat
+      if (profile.name) localStorage.setItem('typebet_user_name', profile.name);
+    }
+
+    function updateUserDisplay() {
+      const nameEl = document.getElementById('user-display-name');
+      const avatarEl = document.getElementById('user-avatar');
+      const profile = getProfile();
+      const displayName = profile.name || 'Alex Rivera';
+
+      if (nameEl) {
+        nameEl.textContent = displayName;
+      }
+
+      if (avatarEl) {
+        avatarEl.innerHTML = '';
+
+        if (profile.avatarIcon) {
+          // Custom icon chosen
+          const icon = document.createElement('i');
+          icon.className = `fa-solid ${profile.avatarIcon} text-sm`;
+          avatarEl.appendChild(icon);
+          avatarEl.classList.add('bg-zinc-600');
+          avatarEl.classList.remove('bg-zinc-700');
+        } else {
+          // Default to initials
+          const initials = getInitials(displayName);
+          const span = document.createElement('span');
+          span.textContent = initials;
+          avatarEl.appendChild(span);
+          avatarEl.classList.add('bg-zinc-600');
+          avatarEl.classList.remove('bg-zinc-700');
+        }
+      }
+    }
+
+    // Available avatars for selection (Font Awesome icons)
+    const AVAILABLE_AVATARS = [
+      { icon: 'fa-user', label: 'Default User' },
+      { icon: 'fa-user-tie', label: 'Professional' },
+      { icon: 'fa-user-graduate', label: 'Graduate' },
+      { icon: 'fa-user-ninja', label: 'Ninja' },
+      { icon: 'fa-user-secret', label: 'Secret Agent' },
+      { icon: 'fa-robot', label: 'Robot' },
+      { icon: 'fa-cat', label: 'Cat' },
+      { icon: 'fa-ghost', label: 'Ghost' },
+      { icon: 'fa-skull', label: 'Skull' },
+      { icon: 'fa-dragon', label: 'Dragon' }
+    ];
+
+    function showProfileEditor() {
+      const profile = getProfile();
+
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4';
+      modal.innerHTML = `
+        <div onclick="event.target.remove()" class="absolute inset-0"></div>
+        <div onclick="event.stopImmediatePropagation()" 
+             class="relative w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-3xl p-6 text-sm">
+          
+          <div class="flex items-center justify-between mb-5">
+            <div class="font-semibold text-lg">Edit Profile</div>
+            <button onclick="this.closest('.fixed').remove()" 
+                    class="text-xl text-zinc-400 hover:text-white leading-none">×</button>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Name -->
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5">Name</label>
+              <input id="edit-name" type="text" value="${profile.name || ''}" 
+                     class="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2 text-sm outline-none">
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5">Email</label>
+              <input id="edit-email" type="email" value="${profile.email || ''}" 
+                     class="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2 text-sm outline-none">
+            </div>
+
+            <!-- Avatar Selection -->
+            <div>
+              <label class="block text-xs text-zinc-400 mb-2">Avatar Icon</label>
+              <div id="avatar-grid" class="grid grid-cols-5 gap-2">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-3 mt-6">
+            <button id="save-profile-btn"
+                    class="flex-1 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-500 text-black font-semibold py-2.5 rounded-2xl text-sm">
+              Save Changes
+            </button>
+            <button onclick="this.closest('.fixed').remove()" 
+                    class="flex-1 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 py-2.5 rounded-2xl text-sm">
+              Cancel
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      const nameInput = modal.querySelector('#edit-name');
+      const emailInput = modal.querySelector('#edit-email');
+      const avatarGrid = modal.querySelector('#avatar-grid');
+      const saveBtn = modal.querySelector('#save-profile-btn');
+
+      let selectedIcon = profile.avatarIcon || null;
+
+      // Render avatar choices
+      AVAILABLE_AVATARS.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = `flex flex-col items-center justify-center p-2 rounded-2xl border transition-all text-xs
+          ${selectedIcon === item.icon 
+            ? 'border-emerald-500 bg-emerald-500/10' 
+            : 'border-zinc-700 hover:border-zinc-600 bg-zinc-950'}`;
+        
+        btn.innerHTML = `
+          <i class="fa-solid ${item.icon} text-lg mb-1"></i>
+          <span class="text-[9px] text-zinc-400">${item.label}</span>
+        `;
+
+        btn.onclick = () => {
+          selectedIcon = item.icon;
+          // Refresh grid selection
+          avatarGrid.querySelectorAll('button').forEach(b => b.classList.remove('border-emerald-500', 'bg-emerald-500/10'));
+          avatarGrid.querySelectorAll('button').forEach(b => b.classList.add('border-zinc-700'));
+          btn.classList.add('border-emerald-500', 'bg-emerald-500/10');
+          btn.classList.remove('border-zinc-700');
+        };
+
+        avatarGrid.appendChild(btn);
+      });
+
+      saveBtn.onclick = () => {
+        const newProfile = {
+          name: nameInput.value.trim() || 'Anonymous',
+          email: emailInput.value.trim(),
+          avatarIcon: selectedIcon
+        };
+        saveProfile(newProfile);
+        updateUserDisplay();
+        modal.remove();
+        showToast('Profile updated');
+      };
+    }
+
+    // ============================================
+    // CRYPTO MARKET (CoinGecko - Best Free API)
+    // ============================================
+
+    let allCryptoCoins = [];
+    let cryptoRefreshInterval = null;
+
+    async function loadCryptoData() {
+      const tbody = document.getElementById('crypto-table-body');
+      if (!tbody) return;
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="px-6 py-8 text-center text-zinc-500">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading live crypto data...
+          </td>
+        </tr>
+      `;
+
+      try {
+        const res = await fetch(
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h'
+        );
+
+        if (!res.ok) throw new Error('Rate limited or API error');
+
+        const data = await res.json();
+        allCryptoCoins = data;
+
+        renderCryptoTable(allCryptoCoins);
+
+        // Auto refresh every 60 seconds
+        if (cryptoRefreshInterval) clearInterval(cryptoRefreshInterval);
+        cryptoRefreshInterval = setInterval(() => {
+          refreshCryptoData(true);
+        }, 60000);
+
+      } catch (err) {
+        console.error('Crypto API error:', err);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-6 py-8 text-center text-amber-400">
+              <i class="fa-solid fa-exclamation-triangle mr-2"></i>
+              Unable to load live data right now. CoinGecko may be rate-limiting. 
+              <button onclick="refreshCryptoData()" class="underline ml-2">Try again</button>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderCryptoTable(coins) {
+      const tbody = document.getElementById('crypto-table-body');
+      if (!tbody) return;
+
+      if (!coins || coins.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-6 text-center text-zinc-500">No coins found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = coins.map(coin => {
+        const change = coin.price_change_percentage_24h || 0;
+        const changeColor = change >= 0 ? 'text-emerald-400' : 'text-red-400';
+        const changeIcon = change >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+
+        return `
+          <tr onclick="showCoinChart('${coin.id}', '${coin.name}', '${coin.symbol}')" 
+              class="market-row border-b border-zinc-800 last:border-0 cursor-pointer hover:bg-zinc-800">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-x-3">
+                <img src="${coin.image}" class="w-8 h-8 rounded-full" alt="${coin.name}">
+                <div>
+                  <div class="font-medium">${coin.name}</div>
+                  <div class="text-xs text-zinc-500 uppercase">${coin.symbol}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-4 text-right font-semibold tabular-nums">
+              $${coin.current_price.toLocaleString()}
+            </td>
+            <td class="px-4 py-4 text-right">
+              <span class="${changeColor} font-medium flex items-center justify-end gap-x-1">
+                <i class="fa-solid ${changeIcon} text-xs"></i>
+                ${change.toFixed(2)}%
+              </span>
+            </td>
+            <td class="px-4 py-4 text-right text-sm text-zinc-300 hidden md:table-cell">
+              $${(coin.market_cap / 1_000_000_000).toFixed(2)}B
+            </td>
+            <td class="px-4 py-4 text-right text-sm text-zinc-300 hidden lg:table-cell">
+              $${(coin.total_volume / 1_000_000).toFixed(0)}M
+            </td>
+            <td class="pr-4 text-right">
+              <button onclick="event.stopImmediatePropagation(); showCoinChart('${coin.id}', '${coin.name}', '${coin.symbol}')"
+                      class="text-emerald-400 hover:text-emerald-300 text-xs px-3 py-1 rounded-xl border border-emerald-800 hover:bg-emerald-500/10">
+                Chart
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterCryptoTable() {
+      const searchInput = document.getElementById('crypto-search');
+      if (!searchInput) return;
+
+      const term = searchInput.value.toLowerCase().trim();
+
+      if (!term) {
+        renderCryptoTable(allCryptoCoins);
+        return;
+      }
+
+      const filtered = allCryptoCoins.filter(coin =>
+        coin.name.toLowerCase().includes(term) ||
+        coin.symbol.toLowerCase().includes(term)
+      );
+
+      renderCryptoTable(filtered);
+    }
+
+    async function refreshCryptoData(silent = false) {
+      if (!silent) {
+        const tbody = document.getElementById('crypto-table-body');
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-6 text-center text-zinc-500">Refreshing...</td></tr>`;
+        }
+      }
+
+      try {
+        const res = await fetch(
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h'
+        );
+        const data = await res.json();
+        allCryptoCoins = data;
+
+        const searchInput = document.getElementById('crypto-search');
+        const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        if (term) {
+          const filtered = allCryptoCoins.filter(c =>
+            c.name.toLowerCase().includes(term) || c.symbol.toLowerCase().includes(term)
+          );
+          renderCryptoTable(filtered);
+        } else {
+          renderCryptoTable(allCryptoCoins);
+        }
+
+        if (!silent) showToast('Crypto prices updated');
+      } catch (err) {
+        if (!silent) showToast('Failed to refresh crypto data', true);
+      }
+    }
+
+    async function showCoinChart(coinId, name, symbol) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4';
+      modal.innerHTML = `
+        <div onclick="event.target.remove()" class="absolute inset-0"></div>
+        <div onclick="event.stopImmediatePropagation()" 
+             class="relative w-full max-w-2xl bg-zinc-900 border border-zinc-700 rounded-3xl p-6">
+          
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <div class="font-semibold text-xl">${name} <span class="text-sm text-zinc-500">(${symbol.toUpperCase()})</span></div>
+              <div class="text-xs text-emerald-400">7-day price history • CoinGecko</div>
+            </div>
+            <button onclick="this.closest('.fixed').remove()" class="text-2xl text-zinc-400 hover:text-white">×</button>
+          </div>
+
+          <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <canvas id="coin-chart" height="90"></canvas>
+          </div>
+
+          <div class="text-[11px] text-center text-zinc-500 mt-3">
+            Data provided by CoinGecko (free tier)
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      try {
+        const res = await fetch(
+          `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=7`
+        );
+        const data = await res.json();
+
+        const labels = data.prices.map(p => {
+          const date = new Date(p[0]);
+          return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        });
+
+        const prices = data.prices.map(p => p[1]);
+
+        const ctx = document.getElementById('coin-chart');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: `${symbol.toUpperCase()} Price (USD)`,
+              data: prices,
+              borderColor: '#22c55e',
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+              pointRadius: 0,
+              pointHoverRadius: 3
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { size: 10 } } },
+              y: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { size: 10 } } }
+            }
+          }
+        });
+      } catch (err) {
+        const container = modal.querySelector('.bg-zinc-950');
+        container.innerHTML = `<div class="text-red-400 text-center py-8">Failed to load chart data.</div>`;
+      }
+    }
+
+    function initCryptoMarket() {
+      const searchInput = document.getElementById('crypto-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', filterCryptoTable);
+      }
+
+      // Load data when section becomes visible (basic lazy load)
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            loadCryptoData();
+            observer.disconnect();
+          }
+        });
+      });
+
+      const cryptoSection = document.getElementById('crypto');
+      if (cryptoSection) observer.observe(cryptoSection);
+    }
+
+    // ============================================
+    // SPORT NEWS (NewsAPI - Free Tier)
+    // ============================================
+
+    // Get a free API key at https://newsapi.org/
+    // Free tier: 100 requests/day
+    const NEWS_API_KEY = ""; // ← Paste your key here for live data
+
+    let allNewsArticles = [];
+    let currentNewsCategory = 'all';
+
+    async function loadSportNews() {
+      const container = document.getElementById('news-list');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="px-6 py-8 text-center text-zinc-500">
+          <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading latest sports news...
+        </div>
+      `;
+
+      if (!NEWS_API_KEY) {
+        // Use fallback mock data
+        allNewsArticles = getMockSportNews();
+        applyNewsFilters();
+        document.getElementById('news-source').innerHTML = `Using demo data • <span class="text-amber-400">Add your NewsAPI key for live updates</span>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `https://newsapi.org/v2/top-headlines?category=sports&language=en&pageSize=25&apiKey=${NEWS_API_KEY}`
+        );
+
+        if (!res.ok) throw new Error('API error or rate limit');
+
+        const data = await res.json();
+        allNewsArticles = data.articles || [];
+
+        applyNewsFilters();
+        document.getElementById('news-source').textContent = 'Live data from NewsAPI';
+
+      } catch (err) {
+        console.warn('NewsAPI error, using mock data:', err);
+        allNewsArticles = getMockSportNews();
+        applyNewsFilters();
+        document.getElementById('news-source').innerHTML = `Using demo data • <span class="text-amber-400">NewsAPI error/rate limit</span>`;
+      }
+    }
+
+    function renderNews(articles) {
+      const container = document.getElementById('news-list');
+      if (!container) return;
+
+      if (!articles || articles.length === 0) {
+        container.innerHTML = `<div class="px-6 py-8 text-center text-zinc-500">No news articles found.</div>`;
+        return;
+      }
+
+      container.innerHTML = articles.map(article => {
+        const published = article.publishedAt ? new Date(article.publishedAt) : new Date();
+        const timeAgo = getTimeAgo(published);
+
+        return `
+          <div onclick="window.open('${article.url}', '_blank')" 
+               class="px-6 py-4 hover:bg-zinc-800 cursor-pointer transition-colors flex gap-4">
+            ${article.urlToImage ? `
+              <img src="${article.urlToImage}" 
+                   class="w-20 h-20 object-cover rounded-xl flex-shrink-0 hidden sm:block"
+                   onerror="this.style.display='none'">
+            ` : ''}
+            
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-x-2 text-xs text-zinc-500 mb-1">
+                <span class="font-medium text-emerald-400">${article.source?.name || 'Sports'}</span>
+                <span>•</span>
+                <span>${timeAgo}</span>
+              </div>
+              <div class="font-medium leading-snug line-clamp-2">${article.title}</div>
+              ${article.description ? `
+                <div class="text-sm text-zinc-400 mt-1 line-clamp-2">${article.description}</div>
+              ` : ''}
+              <div class="text-xs text-emerald-400 mt-1.5 flex items-center gap-x-1">
+                Read full article <i class="fa-solid fa-external-link-alt text-[10px]"></i>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterNews() {
+      applyNewsFilters();
+    }
+
+    function filterNewsByCategory(category) {
+      currentNewsCategory = category;
+
+      // Update active states
+      document.querySelectorAll('.news-filter').forEach(el => {
+        if (el.dataset.category === category) {
+          el.classList.add('active', 'bg-zinc-900', 'border-zinc-700');
+          el.classList.remove('border-transparent');
+        } else {
+          el.classList.remove('active', 'bg-zinc-900', 'border-zinc-700');
+          el.classList.add('border-transparent');
+        }
+      });
+
+      applyNewsFilters();
+    }
+
+    function applyNewsFilters() {
+      const searchInput = document.getElementById('news-search');
+      const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      let filtered = allNewsArticles;
+
+      // Apply category filter
+      if (currentNewsCategory !== 'all') {
+        const keywords = getCategoryKeywords(currentNewsCategory);
+        filtered = filtered.filter(article => {
+          const text = ((article.title || '') + ' ' + (article.description || '') + ' ' + (article.source?.name || '')).toLowerCase();
+          return keywords.some(kw => text.includes(kw));
+        });
+      }
+
+      // Apply search term
+      if (term) {
+        filtered = filtered.filter(article =>
+          (article.title && article.title.toLowerCase().includes(term)) ||
+          (article.description && article.description.toLowerCase().includes(term)) ||
+          (article.source?.name && article.source.name.toLowerCase().includes(term))
+        );
+      }
+
+      renderNews(filtered);
+    }
+
+    function getCategoryKeywords(category) {
+      switch (category) {
+        case 'nfl': return ['nfl', 'football', 'chiefs', 'eagles', '49ers', 'cowboys', 'packers'];
+        case 'nba': return ['nba', 'basketball', 'lakers', 'celtics', 'warriors', 'lebron', 'knicks'];
+        case 'soccer': return ['soccer', 'premier league', 'manchester', 'arsenal', 'real madrid', 'barcelona', 'mls', 'champions league'];
+        case 'ufc': return ['ufc', 'mma', 'jones', 'miocic', 'paddy', 'conor', 'mcgregor'];
+        case 'mlb': return ['mlb', 'baseball', 'yankees', 'dodgers', 'world series', 'mets'];
+        case 'nhl': return ['nhl', 'hockey', 'rangers', 'oilers', 'stanley cup', 'bruins'];
+        case 'cfb': return ['college football', 'cfb', 'alabama', 'georgia', 'ohio state', 'michigan', 'notre dame'];
+        case 'cbb': return ['college basketball', 'cbb', 'march madness', 'duke', 'north carolina', 'kentucky', 'ucla'];
+        case 'tennis': return ['tennis', 'wimbledon', 'us open', 'french open', 'australian open', 'djokovic', 'alcaraz', 'serena'];
+        case 'golf': return ['golf', 'pga', 'masters', 'us open golf', 'british open', 'ryder cup', 'tiger', 'mcilroy'];
+        default: return [];
+      }
+    }
+
+    async function refreshSportNews() {
+      const container = document.getElementById('news-list');
+      if (container) {
+        container.innerHTML = `<div class="px-6 py-6 text-center text-zinc-500">Refreshing news...</div>`;
+      }
+      await loadSportNews();
+      applyNewsFilters();
+      showToast('Sport news refreshed');
+    }
+
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      return `${Math.floor(diffHours / 24)}d ago`;
+    }
+
+    function getMockSportNews() {
+      return [
+        {
+          title: "Lakers Secure Dramatic Overtime Victory Against Celtics",
+          description: "LeBron James delivered a clutch performance with 38 points as the Lakers defeated the Celtics 112-108 in overtime.",
+          source: { name: "ESPN" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          url: "https://www.espn.com/nba/story/_/id/12345678/lakers-celtics-overtime",
+          urlToImage: null
+        },
+        {
+          title: "Manchester City Close in on Premier League Title After Dominant Win",
+          description: "Pep Guardiola's side moved five points clear at the top with a convincing 3-0 victory over Arsenal.",
+          source: { name: "BBC Sport" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+          url: "https://www.bbc.com/sport/football/12345678",
+          urlToImage: null
+        },
+        {
+          title: "Alabama Stuns Georgia in Epic College Football Showdown",
+          description: "The Crimson Tide pulled off a dramatic 28-24 victory over the defending champions in a thriller at Bryant-Denny Stadium.",
+          source: { name: "ESPN" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+          url: "https://www.espn.com/college-football/story/_/id/12345679/alabama-georgia",
+          urlToImage: null
+        },
+        {
+          title: "UFC 309: Main Event Confirmed as Jones vs Miocic",
+          description: "The long-awaited heavyweight clash between Jon Jones and Stipe Miocic has finally been made official for UFC 309.",
+          source: { name: "MMA Fighting" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+          url: "https://www.mmafighting.com/2026/5/28/12345680/ufc-309-jon-jones-stipe-miocic",
+          urlToImage: null
+        },
+        {
+          title: "Duke Edges North Carolina in Classic College Basketball Rivalry Game",
+          description: "The Blue Devils held on for a 76-74 victory in a back-and-forth battle that went down to the final seconds.",
+          source: { name: "The Athletic" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 200).toISOString(),
+          url: "https://theathletic.com/12345681/",
+          urlToImage: null
+        },
+        {
+          title: "NFL Draft 2026: Top Prospects to Watch This Weekend",
+          description: "The upcoming NFL Draft is shaping up to be one of the most exciting in recent years, with several generational talents expected to go early.",
+          source: { name: "NFL.com" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
+          url: "https://www.nfl.com/news/2026-nfl-draft-top-prospects",
+          urlToImage: null
+        },
+        {
+          title: "Alcaraz Defeats Sinner in Epic Wimbledon Final",
+          description: "Carlos Alcaraz claimed his second Wimbledon title after a thrilling five-set battle against Jannik Sinner.",
+          source: { name: "BBC Sport" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 280).toISOString(),
+          url: "https://www.bbc.com/sport/tennis/12345682",
+          urlToImage: null
+        },
+        {
+          title: "Rory McIlroy Wins Masters in Emotional Return to Augusta",
+          description: "The Northern Irishman finally claimed his second green jacket in a dramatic finish at the Masters.",
+          source: { name: "Golf Digest" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 320).toISOString(),
+          url: "https://www.golfdigest.com/story/rory-mcilroy-masters-2026",
+          urlToImage: null
+        },
+        {
+          title: "Yankees Clinch AL East with Walk-Off Homer in Ninth",
+          description: "Aaron Judge hit a two-run blast in the bottom of the ninth to give the Yankees the division title.",
+          source: { name: "MLB.com" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          url: "https://www.mlb.com/news/yankees-al-east-clinch",
+          urlToImage: null
+        },
+        {
+          title: "Oilers Advance to Stanley Cup Final After Overtime Thriller",
+          description: "Edmonton defeated the Stars 3-2 in double overtime to punch their ticket to the Stanley Cup Final.",
+          source: { name: "NHL.com" },
+          publishedAt: new Date(Date.now() - 1000 * 60 * 75).toISOString(),
+          url: "https://www.nhl.com/news/oilers-stanley-cup-final",
+          urlToImage: null
+        }
+      ];
+    }
+
+    function initSportNews() {
+      const searchInput = document.getElementById('news-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', filterNews);
+      }
+
+      // Lazy load when section comes into view
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            loadSportNews();
+            observer.disconnect();
+          }
+        });
+      });
+
+      const newsSection = document.getElementById('sport-news');
+      if (newsSection) observer.observe(newsSection);
+    }
+
+    // Boot
+    window.onload = initialize;
+  </script>
+</body>
+</html>
